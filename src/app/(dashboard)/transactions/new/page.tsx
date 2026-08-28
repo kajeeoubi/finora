@@ -209,7 +209,6 @@ export default function NewTransactionPage() {
                   }
                   onChange={(e) => setAmountStr(e.target.value.replace(/\D/g, ""))}
                   placeholder="0"
-                  autoFocus
                   className="w-full h-14 pl-12 pr-4 rounded-2xl border border-black/[0.06] bg-[#F4F4F6] text-xl font-bold text-foreground focus:outline-none focus:ring-2 focus:ring-violet-600 dark:bg-[#222228] dark:border-white/10 tabular-nums"
                 />
               </div>

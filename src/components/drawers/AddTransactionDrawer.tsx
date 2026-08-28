@@ -201,7 +201,6 @@ export function AddTransactionDrawer() {
                     setErrorMsg("");
                   }}
                   placeholder="0"
-                  autoFocus
                   className="w-full h-14 pl-12 pr-4 rounded-2xl border border-black/[0.08] bg-[#F5F5F7] text-xl font-black text-zinc-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-violet-600 dark:bg-[#202028] dark:border-white/10 tabular-nums"
                 />
               </div>
@@ -289,7 +288,7 @@ export function AddTransactionDrawer() {
                 placeholder="Tulis catatan transaksi..."
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600"
+                className="w-full h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600"
               />
             </div>
 

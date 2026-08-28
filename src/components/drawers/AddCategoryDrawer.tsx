@@ -140,8 +140,7 @@ export function AddCategoryDrawer() {
                 placeholder="Tulis nama kategori..."
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-11 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600"
-                autoFocus
+                className="w-full h-11 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600"
               />
             </div>
 
