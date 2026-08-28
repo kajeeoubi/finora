@@ -1,26 +1,215 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --font-sans: var(--font-sans), 'Outfit', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --background: #F5F5F7;
+  --foreground: #111115;
+  --card: #FFFFFF;
+  --card-foreground: #111115;
+  --popover: #FFFFFF;
+  --popover-foreground: #111115;
+  --primary: #6C4EF5;
+  --primary-foreground: #FFFFFF;
+  --secondary: #EFEAFE;
+  --secondary-foreground: #5638D6;
+  --muted: #EAEAEE;
+  --muted-foreground: #6B7280;
+  --accent: #B6F23D;
+  --accent-foreground: #111115;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #E5E5EB;
+  --input: #F4F4F6;
+  --ring: #6C4EF5;
 }
 
-@theme inline {
+.dark {
+  --background: #0B0B0E;
+  --foreground: #FFFFFF;
+  --card: #16161C;
+  --card-foreground: #FFFFFF;
+  --popover: #16161C;
+  --popover-foreground: #FFFFFF;
+  --primary: #6C4EF5;
+  --primary-foreground: #FFFFFF;
+  --secondary: #202028;
+  --secondary-foreground: #EFEAFE;
+  --muted: #202028;
+  --muted-foreground: #9E9EA8;
+  --accent: #B6F23D;
+  --accent-foreground: #111115;
+  --destructive: #EF4444;
+  --destructive-foreground: #FFFFFF;
+  --border: #262632;
+  --input: #202028;
+  --ring: #6C4EF5;
+}
+
+@theme {
+  --font-sans: var(--font-sans);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-violet-600: #6C4EF5;
+  --color-violet-700: #5638D6;
+  --color-violet-100: #EFEAFE;
+  --color-lime-400: #B6F23D;
+  --color-ink-950: #121216;
+  --color-ink-900: #1C1C22;
+  --color-income-500: #22C55E;
+  --color-expense-500: #EF4444;
+  --color-warning-500: #F59E0B;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+html, body {
+  min-height: 100%;
+  font-family: var(--font-sans);
+  background-color: var(--background);
+  color: var(--foreground);
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  letter-spacing: -0.02em;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+/* Finora Signature Diagonal Hatch Texture */
+.bg-hatch-pattern {
+  background-color: #ECECEF;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #D6D6DD,
+    #D6D6DD 2px,
+    #ECECEF 2px,
+    #ECECEF 8px
+  );
+}
+
+.dark .bg-hatch-pattern,
+.bg-hatch-pattern-dark {
+  background-color: #202028;
+  background-image: repeating-linear-gradient(
+    45deg,
+    #30303C,
+    #30303C 2px,
+    #202028 2px,
+    #202028 8px
+  );
+}
+
+/* Hide Scrollbar Globally */
+* {
+  -ms-overflow-style: none; /* IE & Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+*::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+  width: 0px;
+  height: 0px;
+  background: transparent;
+}
+
+/* Smooth Horizontal Text Marquee */
+@keyframes marquee-slide {
+  0% {
+    transform: translateX(0%);
+  }
+  100% {
+    transform: translateX(calc(-50% - 0.75rem));
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+.animate-marquee-slide {
+  display: inline-flex;
+  width: max-content;
+  will-change: transform;
+  animation: marquee-slide 10s linear infinite;
+}
+
+.animate-marquee-slide:hover {
+  animation-play-state: paused;
+}
+
+/* Card Entrance Animation on Route / Menu Navigation */
+@keyframes card-enter {
+  0% {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-card-enter {
+  animation: card-enter 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.stagger-1 {
+  animation-delay: 60ms;
+}
+
+.stagger-2 {
+  animation-delay: 120ms;
+}
+
+.stagger-3 {
+  animation-delay: 180ms;
+}
+
+.stagger-4 {
+  animation-delay: 240ms;
+}
+
+.stagger-5 {
+  animation-delay: 300ms;
+}
+
+/* Pillar Bar Shoot-Up Animation on Select */
+@keyframes bar-shoot-up {
+  0% {
+    transform: scaleY(0.2);
+    opacity: 0.6;
+  }
+  65% {
+    transform: scaleY(1.05);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+.animate-bar-shoot-up {
+  transform-origin: bottom;
+  animation: bar-shoot-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
