@@ -263,16 +263,31 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         .select("*")
         .eq("user_id", userId);
       if (budgetData) {
-        setBudgets(
-          budgetData.map((b) => ({
-            id: b.id,
-            categoryId: b.category_id,
-            amount: Number(b.amount),
-            month: b.month,
-            year: b.year,
-            createdAt: b.created_at,
-            updatedAt: b.updated_at,
-          }))
+        const loadedBudgets = budgetData.map((b) => ({
+          id: b.id,
+          categoryId: b.category_id,
+          amount: Number(b.amount),
+          month: b.month,
+          year: b.year,
+          createdAt: b.created_at,
+          updatedAt: b.updated_at,
+        }));
+        setBudgets(loadedBudgets);
+
+        // Auto-sync expenseLimit pada categories dengan budget bulan berjalan
+        const now = new Date();
+        const currentM = now.getMonth() + 1;
+        const currentY = now.getFullYear();
+        setCategories((prev) =>
+          prev.map((cat) => {
+            const currentMonthBudget = loadedBudgets.find(
+              (b) => b.categoryId === cat.id && b.month === currentM && b.year === currentY
+            );
+            if (currentMonthBudget && (!cat.expenseLimit || cat.expenseLimit !== currentMonthBudget.amount)) {
+              return { ...cat, expenseLimit: currentMonthBudget.amount };
+            }
+            return cat;
+          })
         );
       }
 
