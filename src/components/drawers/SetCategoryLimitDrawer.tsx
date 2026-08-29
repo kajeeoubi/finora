@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -35,6 +35,7 @@ export function SetCategoryLimitDrawer() {
   const [selectedCatId, setSelectedCatId] = useState("");
   const [limitAmountStr, setLimitAmountStr] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const isEditMode = Boolean(limitCategoryData?.categoryId);
 
@@ -51,9 +52,11 @@ export function SetCategoryLimitDrawer() {
       );
       setErrorMsg("");
     }
-  }, [limitCategoryData]);
+  }, [limitCategoryData, expenseCategories]);
 
-  const selectedCategory = expenseCategories.find((c) => c.id === selectedCatId) || expenseCategories[0];
+  const selectedCategory =
+    expenseCategories.find((c) => c.id === selectedCatId) ||
+    expenseCategories[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -142,7 +145,10 @@ export function SetCategoryLimitDrawer() {
               </div>
             ) : (
               <DropdownMenu>
-                <DropdownMenuTrigger className="w-full h-12 inline-flex items-center justify-between px-4 rounded-2xl border border-black/[0.08] bg-[#F5F5F7] dark:bg-[#202028] dark:border-white/10 text-sm font-bold text-zinc-900 dark:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-all cursor-pointer outline-none">
+                <DropdownMenuTrigger
+                  type="button"
+                  className="w-full h-12 inline-flex items-center justify-between px-4 rounded-2xl border border-black/[0.08] bg-[#F5F5F7] dark:bg-[#202028] dark:border-white/10 text-sm font-bold text-zinc-900 dark:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-all cursor-pointer outline-none touch-manipulation"
+                >
                   <div className="flex items-center gap-2.5">
                     {selectedCategory ? (
                       <>
@@ -166,7 +172,7 @@ export function SetCategoryLimitDrawer() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="start"
-                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5 z-50"
                 >
                   {expenseCategories.map((c) => {
                     const isSelected = (selectedCatId || selectedCategory?.id) === c.id;
@@ -177,7 +183,7 @@ export function SetCategoryLimitDrawer() {
                           setSelectedCatId(c.id);
                           setErrorMsg("");
                         }}
-                        className="flex items-center justify-between py-2 cursor-pointer font-bold"
+                        className="flex items-center justify-between py-2 cursor-pointer font-bold touch-manipulation"
                       >
                         <div className="flex items-center gap-2.5">
                           <CategoryIcon
@@ -202,13 +208,18 @@ export function SetCategoryLimitDrawer() {
             <label className="text-xs font-bold text-zinc-600 dark:text-zinc-300 uppercase tracking-wider block">
               Nominal Batasan Pengeluaran
             </label>
-            <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-zinc-400">
+            <div
+              onClick={() => inputRef.current?.focus()}
+              className="relative cursor-text"
+            >
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-black text-zinc-400 pointer-events-none select-none">
                 Rp
               </span>
               <input
+                ref={inputRef}
                 type="text"
                 inputMode="numeric"
+                pattern="[0-9]*"
                 placeholder="Tulis nominal batasan..."
                 value={
                   limitAmountStr
@@ -221,7 +232,7 @@ export function SetCategoryLimitDrawer() {
                   setLimitAmountStr(e.target.value.replace(/\D/g, ""));
                   setErrorMsg("");
                 }}
-                className="w-full h-12 pl-12 pr-4 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 tabular-nums"
+                className="w-full h-12 pl-12 pr-4 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 text-base font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 tabular-nums touch-manipulation"
               />
             </div>
           </div>
@@ -229,7 +240,7 @@ export function SetCategoryLimitDrawer() {
           <div className="pt-2 pb-1">
             <Button
               type="submit"
-              className="w-full h-12 rounded-2xl bg-[#6C4EF5] hover:bg-[#5638D6] text-white text-sm font-bold shadow-md shadow-violet-500/25 cursor-pointer"
+              className="w-full h-12 rounded-2xl bg-[#6C4EF5] hover:bg-[#5638D6] active:scale-[0.98] text-white text-sm font-bold shadow-md shadow-violet-500/25 cursor-pointer touch-manipulation"
             >
               Simpan Batasan
             </Button>
