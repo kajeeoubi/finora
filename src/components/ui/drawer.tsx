@@ -5,11 +5,13 @@ import { Drawer as DrawerPrimitive } from "vaul";
 import { cn } from "@/lib/utils";
 
 const Drawer = ({
-  shouldScaleBackground = true,
+  shouldScaleBackground = false,
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) => (
   <DrawerPrimitive.Root
     shouldScaleBackground={shouldScaleBackground}
+    repositionInputs={repositionInputs}
     {...props}
   />
 );
@@ -47,7 +49,7 @@ const DrawerContent = React.forwardRef<
         onOpenAutoFocus?.(e);
       }}
       className={cn(
-        "fixed inset-x-0 bottom-0 z-50 mt-24 flex h-auto max-h-[92vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white dark:bg-[#16161C] dark:border-white/10 shadow-2xl focus:outline-none max-w-xl mx-auto",
+        "fixed inset-x-0 bottom-0 z-50 flex h-auto max-h-[92vh] flex-col rounded-t-[32px] border-t border-black/[0.06] bg-white dark:bg-[#16161C] dark:border-white/10 shadow-2xl focus:outline-none max-w-xl mx-auto",
         className
       )}
       {...props}
