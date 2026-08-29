@@ -274,18 +274,27 @@ export default function PlanningPage() {
 
         {/* Ringkasan Akumulasi Wishlist */}
         {wishlists.length > 0 && (
-          <div className="p-5 rounded-[24px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div
+            className="p-5 rounded-[24px] text-white border border-white/[0.08] shadow-xl flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            style={{
+              backgroundColor: "#121215",
+              backgroundImage: `
+                radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.04) 40%, transparent 65%),
+                radial-gradient(circle at 0% 100%, rgba(108, 78, 245, 0.12) 0%, rgba(108, 78, 245, 0.02) 30%, transparent 60%)
+              `,
+            }}
+          >
             <div className="flex items-center gap-3.5">
-              <div className="h-12 w-12 rounded-2xl bg-emerald-50 text-emerald-600 dark:bg-emerald-950/60 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <div className="h-12 w-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 text-emerald-400 flex items-center justify-center shrink-0">
                 <PiggyBank className="h-6 w-6" />
               </div>
               <div className="space-y-0.5">
-                <span className="text-xs font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">
+                <span className="text-xs font-bold text-zinc-400 uppercase tracking-wider block">
                   Total Terkumpul
                 </span>
-                <div className="text-xl sm:text-2xl font-black text-foreground tabular-nums tracking-tight">
+                <div className="text-xl sm:text-2xl font-black text-white tabular-nums tracking-tight">
                   {formatIDR(totalSavedWishlist)}
-                  <span className="text-xs font-normal text-muted-foreground ml-2">
+                  <span className="text-xs font-normal text-zinc-400 ml-2">
                     dari {formatIDR(totalTargetWishlist)}
                   </span>
                 </div>
@@ -293,7 +302,7 @@ export default function PlanningPage() {
             </div>
 
             <div className="flex items-center gap-2 self-start sm:self-center">
-              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-700 dark:text-zinc-300">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-white/10 text-white border border-white/10">
                 {completedWishlistsCount} dari {wishlists.length} Tercapai
               </span>
             </div>

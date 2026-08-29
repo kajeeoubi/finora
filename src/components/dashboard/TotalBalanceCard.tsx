@@ -20,8 +20,8 @@ export function TotalBalanceCard() {
       style={{
         backgroundColor: "#121215",
         backgroundImage: `
-          radial-gradient(circle at 100% 0%, rgba(108, 78, 245, 0.45) 0%, rgba(108, 78, 245, 0.15) 30%, transparent 60%),
-          radial-gradient(circle at 0% 100%, rgba(182, 242, 61, 0.22) 0%, rgba(182, 242, 61, 0.06) 28%, transparent 55%)
+          radial-gradient(circle at 100% 0%, rgba(108, 78, 245, 0.22) 0%, rgba(108, 78, 245, 0.05) 35%, transparent 60%),
+          radial-gradient(circle at 0% 100%, rgba(182, 242, 61, 0.10) 0%, rgba(182, 242, 61, 0.02) 30%, transparent 55%)
         `,
       }}
     >
