@@ -219,7 +219,6 @@ export function SetCategoryLimitDrawer() {
                 ref={inputRef}
                 type="text"
                 inputMode="numeric"
-                pattern="[0-9]*"
                 placeholder="Tulis nominal batasan..."
                 value={
                   limitAmountStr
