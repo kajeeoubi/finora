@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -16,7 +16,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Check } from "lucide-react";
 
 export function SetCategoryLimitDrawer() {
   const {
@@ -27,29 +27,38 @@ export function SetCategoryLimitDrawer() {
     addBudget,
   } = useFinora();
 
-  const expenseCategories = categories.filter((c) => c.type === "EXPENSE");
+  const expenseCategories = useMemo(
+    () => categories.filter((c) => c.type === "EXPENSE"),
+    [categories]
+  );
+
   const [selectedCatId, setSelectedCatId] = useState("");
   const [limitAmountStr, setLimitAmountStr] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const isEditMode = Boolean(limitCategoryData?.categoryId);
 
+  // Inisialisasi state saat drawer dibuka
   useEffect(() => {
     if (limitCategoryData) {
-      const defaultId = limitCategoryData.categoryId || expenseCategories[0]?.id || "";
+      const defaultId =
+        limitCategoryData.categoryId || expenseCategories[0]?.id || "";
       setSelectedCatId(defaultId);
       setLimitAmountStr(
-        limitCategoryData.initialLimit ? limitCategoryData.initialLimit.toString() : ""
+        limitCategoryData.initialLimit
+          ? limitCategoryData.initialLimit.toString()
+          : ""
       );
       setErrorMsg("");
     }
-  }, [limitCategoryData, expenseCategories]);
+  }, [limitCategoryData]);
 
-  const selectedCategory = expenseCategories.find((c) => c.id === selectedCatId);
+  const selectedCategory = expenseCategories.find((c) => c.id === selectedCatId) || expenseCategories[0];
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedCatId) {
+    const targetId = selectedCatId || selectedCategory?.id;
+    if (!targetId) {
       setErrorMsg("Pilih kategori pengeluaran");
       return;
     }
@@ -61,12 +70,12 @@ export function SetCategoryLimitDrawer() {
     }
 
     // 1. Update expenseLimit on category
-    updateCategory(selectedCatId, { expenseLimit: cleanLimit });
+    updateCategory(targetId, { expenseLimit: cleanLimit });
 
     // 2. Sync to budget model for current month
     const now = new Date();
     addBudget({
-      categoryId: selectedCatId,
+      categoryId: targetId,
       amount: cleanLimit,
       month: now.getMonth() + 1,
       year: now.getFullYear(),
@@ -135,17 +144,23 @@ export function SetCategoryLimitDrawer() {
               <DropdownMenu>
                 <DropdownMenuTrigger className="w-full h-12 inline-flex items-center justify-between px-4 rounded-2xl border border-black/[0.08] bg-[#F5F5F7] dark:bg-[#202028] dark:border-white/10 text-sm font-bold text-zinc-900 dark:text-white hover:bg-black/[0.03] dark:hover:bg-white/[0.04] transition-all cursor-pointer outline-none">
                   <div className="flex items-center gap-2.5">
-                    <CategoryIcon
-                      iconName={selectedCategory?.icon}
-                      size="sm"
-                      bgColor={
-                        selectedCategory?.color
-                          ? `${selectedCategory.color}20`
-                          : undefined
-                      }
-                      iconColor={selectedCategory?.color || undefined}
-                    />
-                    <span>{selectedCategory?.name || "Pilih Kategori"}</span>
+                    {selectedCategory ? (
+                      <>
+                        <CategoryIcon
+                          iconName={selectedCategory.icon}
+                          size="sm"
+                          bgColor={
+                            selectedCategory.color
+                              ? `${selectedCategory.color}20`
+                              : undefined
+                          }
+                          iconColor={selectedCategory.color || undefined}
+                        />
+                        <span>{selectedCategory.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-zinc-400 font-normal">Pilih Kategori...</span>
+                    )}
                   </div>
                   <ChevronDown className="h-4 w-4 text-muted-foreground" />
                 </DropdownMenuTrigger>
@@ -153,21 +168,30 @@ export function SetCategoryLimitDrawer() {
                   align="start"
                   className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5"
                 >
-                  {expenseCategories.map((c) => (
-                    <DropdownMenuItem
-                      key={c.id}
-                      onClick={() => setSelectedCatId(c.id)}
-                      className="flex items-center gap-2.5 py-2 cursor-pointer font-bold"
-                    >
-                      <CategoryIcon
-                        iconName={c.icon}
-                        size="sm"
-                        bgColor={c.color ? `${c.color}20` : undefined}
-                        iconColor={c.color || undefined}
-                      />
-                      <span>{c.name}</span>
-                    </DropdownMenuItem>
-                  ))}
+                  {expenseCategories.map((c) => {
+                    const isSelected = (selectedCatId || selectedCategory?.id) === c.id;
+                    return (
+                      <DropdownMenuItem
+                        key={c.id}
+                        onSelect={() => {
+                          setSelectedCatId(c.id);
+                          setErrorMsg("");
+                        }}
+                        className="flex items-center justify-between py-2 cursor-pointer font-bold"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <CategoryIcon
+                            iconName={c.icon}
+                            size="sm"
+                            bgColor={c.color ? `${c.color}20` : undefined}
+                            iconColor={c.color || undefined}
+                          />
+                          <span>{c.name}</span>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 text-[#6C4EF5]" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
                 </DropdownMenuContent>
               </DropdownMenu>
             )}
@@ -193,9 +217,10 @@ export function SetCategoryLimitDrawer() {
                       ).toLocaleString("id-ID")
                     : ""
                 }
-                onChange={(e) =>
-                  setLimitAmountStr(e.target.value.replace(/\D/g, ""))
-                }
+                onChange={(e) => {
+                  setLimitAmountStr(e.target.value.replace(/\D/g, ""));
+                  setErrorMsg("");
+                }}
                 className="w-full h-12 pl-12 pr-4 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 text-base sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 tabular-nums"
               />
             </div>
