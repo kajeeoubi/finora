@@ -15,10 +15,16 @@ export function TotalBalanceCard() {
   } = useFinora();
 
   return (
-    <div className="relative overflow-hidden rounded-[32px] bg-[#121215] p-6 text-white shadow-2xl shadow-black/25 border border-white/[0.08] transition-all">
-      {/* Ambient background glow */}
-      <div className="absolute -right-16 -top-16 h-48 w-48 rounded-full bg-[#6C4EF5]/20 blur-3xl pointer-events-none" />
-      <div className="absolute -left-16 -bottom-16 h-48 w-48 rounded-full bg-[#B6F23D]/10 blur-3xl pointer-events-none" />
+    <div className="relative isolate overflow-hidden rounded-[32px] bg-[#121215] p-6 text-white shadow-2xl shadow-black/25 border border-white/[0.08] transition-all">
+      {/* Ambient background glow (strictly contained inside the card) */}
+      <div
+        className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#6C4EF5]/25 blur-2xl pointer-events-none -z-10"
+        aria-hidden="true"
+      />
+      <div
+        className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#B6F23D]/15 blur-2xl pointer-events-none -z-10"
+        aria-hidden="true"
+      />
 
       {/* Top row */}
       <div className="relative z-10 flex items-center justify-between">
