@@ -12,6 +12,7 @@ import {
   Filter,
   ChevronDown,
   Check,
+  Wallet as WalletIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
@@ -182,27 +183,30 @@ export default function TransactionsPage() {
           </div>
 
           {/* Styled Wallet Dropdown Menu */}
-          <div className="self-end sm:self-auto shrink-0">
+          <div className="w-full sm:w-auto shrink-0">
             <DropdownMenu>
-              <DropdownMenuTrigger className="inline-flex items-center gap-1 text-xs font-bold text-zinc-800 dark:text-zinc-200 bg-[#F5F5F7] dark:bg-[#202028] px-3.5 py-2 rounded-xl border border-black/[0.04] dark:border-white/5 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-all cursor-pointer outline-none">
-                <span>{selectedWalletName}</span>
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              <DropdownMenuTrigger className="w-full sm:w-auto inline-flex items-center justify-between sm:justify-start gap-2 text-xs font-bold text-zinc-800 dark:text-zinc-200 bg-[#F5F5F7] dark:bg-[#202028] px-3.5 py-2.5 rounded-xl border border-black/[0.04] dark:border-white/5 hover:bg-black/[0.05] dark:hover:bg-white/[0.06] transition-all cursor-pointer outline-none shadow-sm">
+                <div className="flex items-center gap-2">
+                  <WalletIcon className="h-3.5 w-3.5 text-[#6C4EF5] shrink-0" />
+                  <span>{selectedWalletName}</span>
+                </div>
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground shrink-0 ml-auto sm:ml-0" />
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 p-1.5">
+              <DropdownMenuContent align="end" className="w-[var(--radix-dropdown-menu-trigger-width)] sm:w-48 p-1.5 rounded-2xl shadow-xl">
                 <DropdownMenuItem
                   onClick={() => setFilterWalletId("ALL")}
-                  className="flex items-center justify-between"
+                  className="flex items-center justify-between py-2 cursor-pointer text-xs"
                 >
-                  <span>Semua Dompet</span>
+                  <span className="font-bold">Semua Dompet</span>
                   {filterWalletId === "ALL" && <Check className="h-3.5 w-3.5 text-[#6C4EF5]" />}
                 </DropdownMenuItem>
                 {wallets.map((w) => (
                   <DropdownMenuItem
                     key={w.id}
                     onClick={() => setFilterWalletId(w.id)}
-                    className="flex items-center justify-between"
+                    className="flex items-center justify-between py-2 cursor-pointer text-xs"
                   >
-                    <span>{w.name}</span>
+                    <span className="font-bold">{w.name}</span>
                     {filterWalletId === w.id && <Check className="h-3.5 w-3.5 text-[#6C4EF5]" />}
                   </DropdownMenuItem>
                 ))}

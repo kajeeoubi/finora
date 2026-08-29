@@ -258,11 +258,10 @@ export default function ReportsPage() {
             ))}
           </div>
 
-          {/* Pemilih Periode Kalender & Tombol Export PDF */}
-          <div className="flex items-center justify-between sm:justify-end gap-2">
+          <div className="grid grid-cols-2 gap-2 w-full sm:flex sm:items-center sm:justify-end sm:w-auto">
             {/* Navigator Periode */}
-            <div className="flex items-center justify-between w-[180px] bg-[#F5F5F7] dark:bg-[#202028] rounded-2xl p-1 border border-black/[0.04] dark:border-white/10 select-none">
-              {/* Tombol Geser Mundur (Kiri) */}
+            <div className="flex items-center justify-between w-full sm:w-[180px] bg-[#F5F5F7] dark:bg-[#202028] rounded-2xl p-1 border border-black/[0.04] dark:border-white/10 select-none">
+              {/* Tombol Geser Mundur */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -292,7 +291,7 @@ export default function ReportsPage() {
                   <DropdownMenuContent
                     align="center"
                     sideOffset={6}
-                    className="w-[180px] min-w-[180px] max-w-[180px] p-1 rounded-2xl max-h-64 overflow-y-auto shadow-xl"
+                    className="w-[180px] min-w-[160px] p-1 rounded-2xl max-h-64 overflow-y-auto shadow-xl"
                   >
                     {MONTH_NAMES.map((monthName, idx) => {
                       const isFutureMonth =
@@ -362,11 +361,10 @@ export default function ReportsPage() {
                 <button
                   type="button"
                   onClick={handleExportPDF}
-                  className="h-9 px-3 sm:px-3.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] hover:bg-[#6C4EF5] hover:text-white dark:hover:bg-[#6C4EF5] dark:hover:text-white text-zinc-700 dark:text-zinc-200 border border-black/[0.04] dark:border-white/10 flex items-center gap-1.5 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0 shadow-sm group"
+                  className="w-full sm:w-auto h-9 px-3 sm:px-3.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] hover:bg-[#6C4EF5] hover:text-white dark:hover:bg-[#6C4EF5] dark:hover:text-white text-zinc-700 dark:text-zinc-200 border border-black/[0.04] dark:border-white/10 flex items-center justify-center gap-1.5 text-xs font-bold transition-all active:scale-95 cursor-pointer shadow-sm group"
                 >
-                  <FileDown className="h-3.5 w-3.5 text-[#6C4EF5] group-hover:text-white transition-colors" />
-                  <span className="hidden sm:inline">Export PDF</span>
-                  <span className="sm:hidden">PDF</span>
+                  <FileDown className="h-3.5 w-3.5 text-[#6C4EF5] group-hover:text-white transition-colors shrink-0" />
+                  <span>Export PDF</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent side="bottom">Export Laporan PDF</TooltipContent>
