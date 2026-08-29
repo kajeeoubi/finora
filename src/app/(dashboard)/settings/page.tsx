@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useFinora } from "@/context/finora-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -12,14 +13,17 @@ import {
   Check,
   Moon,
   Sun,
+  LogOut,
 } from "lucide-react";
 
 export default function SettingsPage() {
+  const router = useRouter();
   const {
     user,
     categories,
     updateUser,
     resetToDefaultData,
+    logout,
   } = useFinora();
 
   const [name, setName] = useState(user.name);
@@ -220,7 +224,7 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Reset Data Bawaan */}
+      {/* Reset Data Bawaan & Keluar */}
       <div className="rounded-[28px] border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/25 p-6 space-y-3 transition-colors animate-card-enter stagger-3">
         <div className="text-amber-800 dark:text-amber-300 font-extrabold text-sm">
           Reset Data Bawaan
@@ -234,6 +238,29 @@ export default function SettingsPage() {
           className="h-11 rounded-2xl border-amber-300 bg-white text-amber-800 hover:bg-amber-100 text-xs font-bold dark:bg-amber-900/80 dark:text-white dark:border-amber-700/80 cursor-pointer"
         >
           {isResetDone ? "Data Telah Direset" : "Reset ke Data Awal"}
+        </Button>
+      </div>
+
+      {/* Tombol Keluar Akun */}
+      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <span className="text-sm font-bold text-zinc-900 dark:text-white block">
+            Keluar dari Finora
+          </span>
+          <span className="text-xs text-zinc-500 dark:text-zinc-400">
+            Kunci kembali akses aplikasi dan kembali ke halaman masuk
+          </span>
+        </div>
+        <Button
+          onClick={() => {
+            logout();
+            router.replace("/login");
+          }}
+          variant="outline"
+          className="h-11 rounded-2xl border-red-200 dark:border-red-950 bg-red-50/80 hover:bg-red-100 text-red-600 dark:bg-red-950/30 dark:text-red-400 dark:hover:bg-red-950/60 text-xs font-bold gap-2 cursor-pointer shrink-0"
+        >
+          <LogOut className="h-4 w-4" />
+          <span>Keluar Akun</span>
         </Button>
       </div>
     </div>

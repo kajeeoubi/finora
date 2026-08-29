@@ -47,6 +47,11 @@ interface FinoraContextType {
   monthlyIncome: number;
   monthlyExpense: number;
 
+  // Auth state
+  isAuthenticated: boolean;
+  login: (email: string, password?: string) => boolean;
+  logout: () => void;
+
   // User Action
   updateUser: (data: Partial<UserProfile>) => { success: boolean; error?: string };
 
@@ -105,11 +110,20 @@ interface FinoraContextType {
   setIsAddWishlistModalOpen: (open: boolean) => void;
   isAddReminderModalOpen: boolean;
   setIsAddReminderModalOpen: (open: boolean) => void;
+
+  // Dedicated action drawer states
+  payReminderItem: BillReminder | null;
+  setPayReminderItem: (item: BillReminder | null) => void;
+  savingTargetWishlistId: string | null;
+  setSavingTargetWishlistId: (id: string | null) => void;
+  limitCategoryData: { categoryId?: string; initialLimit?: number } | null;
+  setLimitCategoryData: (data: { categoryId?: string; initialLimit?: number } | null) => void;
 }
 
 const FinoraContext = createContext<FinoraContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
+  AUTH: "finora_auth_v2",
   USER: "finora_user_v2",
   WALLETS: "finora_wallets_v2",
   CATEGORIES: "finora_categories_v2",
@@ -121,6 +135,7 @@ const STORAGE_KEYS = {
 };
 
 export function FinoraProvider({ children }: { children: React.ReactNode }) {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<UserProfile>(INITIAL_USER);
   const [wallets, setWallets] = useState<Wallet[]>(INITIAL_WALLETS);
   const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
@@ -139,10 +154,14 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isAddWishlistModalOpen, setIsAddWishlistModalOpen] = useState(false);
   const [isAddReminderModalOpen, setIsAddReminderModalOpen] = useState(false);
+  const [payReminderItem, setPayReminderItem] = useState<BillReminder | null>(null);
+  const [savingTargetWishlistId, setSavingTargetWishlistId] = useState<string | null>(null);
+  const [limitCategoryData, setLimitCategoryData] = useState<{ categoryId?: string; initialLimit?: number } | null>(null);
 
   // Load from localStorage on mount
   useEffect(() => {
     try {
+      const savedAuth = localStorage.getItem(STORAGE_KEYS.AUTH);
       const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
       const savedWallets = localStorage.getItem(STORAGE_KEYS.WALLETS);
       const savedCategories = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
@@ -152,6 +171,7 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       const savedWishlists = localStorage.getItem(STORAGE_KEYS.WISHLISTS);
       const savedReminders = localStorage.getItem(STORAGE_KEYS.REMINDERS);
 
+      if (savedAuth === "true") setIsAuthenticated(true);
       if (savedUser) setUser(JSON.parse(savedUser));
       if (savedWallets) setWallets(JSON.parse(savedWallets));
       if (savedCategories) setCategories(JSON.parse(savedCategories));
@@ -164,6 +184,27 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       console.warn("Could not load stored Finora data:", e);
     }
     setIsHydrated(true);
+  }, []);
+
+  // Login action
+  const login = useCallback((_email: string, _password?: string) => {
+    setIsAuthenticated(true);
+    try {
+      localStorage.setItem(STORAGE_KEYS.AUTH, "true");
+    } catch (e) {
+      console.warn("Could not save auth state:", e);
+    }
+    return true;
+  }, []);
+
+  // Logout action
+  const logout = useCallback(() => {
+    setIsAuthenticated(false);
+    try {
+      localStorage.setItem(STORAGE_KEYS.AUTH, "false");
+    } catch (e) {
+      console.warn("Could not clear auth state:", e);
+    }
   }, []);
 
   // Save to localStorage whenever state changes
@@ -958,6 +999,9 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
   }, [monthlyIncome, monthlyExpense, currentMonth]);
 
   const value = {
+    isAuthenticated,
+    login,
+    logout,
     user,
     wallets,
     categories,
@@ -1012,6 +1056,12 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     setIsAddWishlistModalOpen,
     isAddReminderModalOpen,
     setIsAddReminderModalOpen,
+    payReminderItem,
+    setPayReminderItem,
+    savingTargetWishlistId,
+    setSavingTargetWishlistId,
+    limitCategoryData,
+    setLimitCategoryData,
   };
 
   return (
