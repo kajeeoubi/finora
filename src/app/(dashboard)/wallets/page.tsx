@@ -121,17 +121,7 @@ export default function WalletsPage() {
               <div
                 key={wallet.id}
                 tabIndex={0}
-                className={cn(
-                  "p-5 rounded-3xl border transition-all relative group flex flex-col justify-between min-h-[150px] text-white focus:outline-none focus:ring-1 focus:ring-violet-500/30 shadow-lg border-white/10"
-                )}
-                style={{
-                  backgroundColor: "#121216",
-                  backgroundImage: isBank
-                    ? `radial-gradient(circle at 100% 0%, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.04) 40%, transparent 70%), radial-gradient(circle at 0% 100%, rgba(139, 92, 246, 0.12) 0%, transparent 60%)`
-                    : isEwallet
-                    ? `radial-gradient(circle at 100% 0%, rgba(168, 85, 247, 0.18) 0%, rgba(168, 85, 247, 0.04) 40%, transparent 70%), radial-gradient(circle at 0% 100%, rgba(236, 72, 153, 0.10) 0%, transparent 60%)`
-                    : `radial-gradient(circle at 100% 0%, rgba(16, 185, 129, 0.18) 0%, rgba(16, 185, 129, 0.04) 40%, transparent 70%), radial-gradient(circle at 0% 100%, rgba(182, 242, 61, 0.08) 0%, transparent 60%)`,
-                }}
+                className="p-5 rounded-3xl border transition-all relative group flex flex-col justify-between min-h-[150px] bg-[#121216] text-white focus:outline-none focus:ring-1 focus:ring-violet-500/30 shadow-lg border-white/[0.08]"
               >
                 {/* Top Row: Icon & Delete */}
                 <div className="flex items-center justify-between">
