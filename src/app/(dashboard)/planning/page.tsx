@@ -304,7 +304,7 @@ export default function PlanningPage() {
         {wishlists.length === 0 ? (
           <div className="p-10 text-center rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] space-y-3">
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              Belum ada target wishlist. Mulai rencanakan impian Anda!
+              Belum memiliki wishlist.
             </p>
           </div>
         ) : (
