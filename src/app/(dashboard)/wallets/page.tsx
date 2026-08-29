@@ -112,8 +112,9 @@ export default function WalletsPage() {
             return (
               <div
                 key={wallet.id}
+                tabIndex={0}
                 className={cn(
-                  "p-5 rounded-3xl border transition-all relative group flex flex-col justify-between min-h-[150px]",
+                  "p-5 rounded-3xl border transition-all relative group flex flex-col justify-between min-h-[150px] focus:outline-none focus:ring-1 focus:ring-violet-500/30",
                   isBank
                     ? "bg-gradient-to-br from-[#1C1C26] to-[#121218] text-white border-white/10 shadow-lg"
                     : isEwallet
@@ -149,7 +150,7 @@ export default function WalletsPage() {
                       <button
                         type="button"
                         onClick={() => deleteWallet(wallet.id)}
-                        className="opacity-0 group-hover:opacity-100 p-2 text-zinc-400 hover:text-red-400 rounded-xl transition-opacity cursor-pointer"
+                        className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus:opacity-100 p-2 text-zinc-400 hover:text-red-400 rounded-xl transition-opacity cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

@@ -98,7 +98,8 @@ export default function CategoriesPage() {
         {filtered.map((cat) => (
           <div
             key={cat.id}
-            className="p-4 sm:p-5 rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] shadow-sm flex flex-col justify-between items-center text-center gap-2.5 relative group transition-colors"
+            tabIndex={0}
+            className="p-4 sm:p-5 rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] shadow-sm flex flex-col justify-between items-center text-center gap-2.5 relative group transition-colors focus:outline-none focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-violet-500/30"
           >
             <CategoryIcon
               iconName={cat.icon}
@@ -132,7 +133,7 @@ export default function CategoriesPage() {
                   <button
                     type="button"
                     onClick={() => deleteCategory(cat.id)}
-                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg transition-opacity cursor-pointer"
+                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg transition-opacity cursor-pointer"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

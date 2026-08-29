@@ -365,8 +365,9 @@ export default function RemindersPage() {
               return (
                 <div
                   key={item.id}
+                  tabIndex={0}
                   className={cn(
-                    "rounded-[28px] border bg-white p-5 shadow-sm dark:bg-[#16161C] space-y-3.5 transition-colors relative group",
+                    "rounded-[28px] border bg-white p-5 shadow-sm dark:bg-[#16161C] space-y-3.5 transition-colors relative group focus:outline-none focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-violet-500/30",
                     item.isPaid
                       ? "border-black/[0.04] dark:border-white/[0.06] opacity-80"
                       : "border-black/[0.06] dark:border-white/[0.08]"
@@ -413,7 +414,7 @@ export default function RemindersPage() {
                     </div>
 
                     {/* Delete Tooltip */}
-                    <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                    <div className="flex items-center opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus:opacity-100 transition-opacity shrink-0">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button

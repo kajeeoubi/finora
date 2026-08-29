@@ -227,7 +227,8 @@ export default function PlanningPage() {
               return (
                 <div
                   key={category.id}
-                  className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-3.5 transition-colors relative group"
+                  tabIndex={0}
+                  className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-3.5 transition-colors relative group focus:outline-none focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-violet-500/30"
                 >
                   {/* Header Row: Title on Left, Edit & Delete on Right */}
                   <div className="flex items-center justify-between">
@@ -245,7 +246,7 @@ export default function PlanningPage() {
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus:opacity-100 transition-opacity">
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <button
@@ -427,7 +428,8 @@ export default function PlanningPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-3.5 transition-colors relative group"
+                  tabIndex={0}
+                  className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-3.5 transition-colors relative group focus:outline-none focus:ring-1 focus:ring-violet-500/20 dark:focus:ring-violet-500/30"
                 >
                   {/* Header Row */}
                   <div className="flex items-start justify-between gap-2">
@@ -448,7 +450,7 @@ export default function PlanningPage() {
                           <button
                             type="button"
                             onClick={() => deleteWishlistItem(item.id)}
-                            className="opacity-0 group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-all cursor-pointer"
+                            className="opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 group-focus:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-all cursor-pointer"
                           >
                             <Trash2 className="h-4 w-4" />
                           </button>
