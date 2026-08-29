@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR } from "@/lib/formatters";
 import { HatchProgressBar } from "@/components/shared/HatchProgressBar";
-import { ArrowUpRight, ChevronRight, Check, Filter } from "lucide-react";
+import { ArrowUpRight, Check, Filter } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -14,6 +13,11 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 export function BudgetOverviewCard() {
   const { getBudgetCalculations, getTopBudgetNearLimit } = useFinora();
@@ -27,24 +31,17 @@ export function BudgetOverviewCard() {
     return (
       <div className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08]">
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+          <h3 className="text-base font-bold">
             Batas Pengeluaran
-          </span>
-          <Link
-            href="/budgets"
-            className="text-xs font-semibold text-violet-600 dark:text-violet-400 hover:underline flex items-center gap-0.5"
-          >
-            Buat Anggaran <ChevronRight className="h-3 w-3" />
-          </Link>
+          </h3>
         </div>
         <p className="mt-3 text-sm text-muted-foreground">
-          Belum ada anggaran bulanan yang diatur.
+          Belum ada batas pengeluaran yang diatur.
         </p>
       </div>
     );
   }
 
-  // Find active budget by selected category or default to topBudget or first
   const activeBudget =
     budgetCalcs.find((b) => b.category.id === selectedCategoryId) ||
     topBudget ||
@@ -54,20 +51,21 @@ export function BudgetOverviewCard() {
 
   return (
     <div className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-3.5 transition-colors">
-      {/* Header Row: Title on Left (Batas Pengeluaran CategoryName without ()), Funnel Filter Icon on Right */}
       <div className="flex items-center justify-between">
-        <span className="text-sm font-bold text-foreground">
+        <h3 className="text-base font-bold text-foreground">
           Batas Pengeluaran {category.name}
-        </span>
-
-        {/* Funnel Filter Icon Button */}
+        </h3>
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className="h-8 w-8 rounded-full flex items-center justify-center bg-[#F5F5F7] dark:bg-[#202028] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer outline-none shadow-sm"
-            title="Filter Kategori"
-          >
-            <Filter className="h-3.5 w-3.5 text-foreground" />
-          </DropdownMenuTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <DropdownMenuTrigger className="h-8 w-8 rounded-full flex items-center justify-center bg-[#F5F5F7] dark:bg-[#202028] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer outline-none shadow-sm">
+                <Filter className="h-3.5 w-3.5 text-foreground" />
+              </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Filter Kategori
+            </TooltipContent>
+          </Tooltip>
           <DropdownMenuContent align="end" className="w-48 p-1.5">
             <DropdownMenuLabel>Pilih Kategori</DropdownMenuLabel>
             <DropdownMenuSeparator />
@@ -106,7 +104,7 @@ export function BudgetOverviewCard() {
         </div>
       </div>
 
-      {/* Signature Hatch Progress Bar */}
+      {/* Progress Bar */}
       <HatchProgressBar
         percentage={percentage}
         status={status}

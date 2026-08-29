@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useFinora } from "@/context/finora-context";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
@@ -19,6 +18,7 @@ export default function SettingsPage() {
   const {
     user,
     categories,
+    updateUser,
     resetToDefaultData,
   } = useFinora();
 
@@ -27,6 +27,11 @@ export default function SettingsPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isResetDone, setIsResetDone] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+
+  useEffect(() => {
+    setName(user.name);
+    setEmail(user.email);
+  }, [user]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -44,16 +49,28 @@ export default function SettingsPage() {
     }
   };
 
+  const getUserInitials = (userName: string) => {
+    if (!userName) return "FN";
+    const parts = userName.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  // Simpan perubahan profil
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
+    updateUser({
+      name: name.trim() || user.name,
+      email: email.trim() || user.email,
+    });
     setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    setTimeout(() => setIsSaved(false), 2500);
   };
 
   const handleReset = () => {
     if (
       window.confirm(
-        "Apakah Anda yakin ingin mengembalikan seluruh data ke data demo PRD (Saldo Rp7.250.000, 4 dompet, transaksi awal)?"
+        "Apakah Anda yakin ingin mengembalikan seluruh data ke nilai awal bawaan?"
       )
     ) {
       resetToDefaultData();
@@ -69,38 +86,42 @@ export default function SettingsPage() {
           Pengaturan
         </h2>
         <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
-          Kelola profil pengguna, tema tampilan dan data Finora
+          Kelola profil pengguna dan pengaturan sistem
         </p>
       </div>
 
-      {/* Profile Card */}
+      {/* Kartu Profil Pengguna */}
       <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-6 shadow-sm space-y-5 transition-colors animate-card-enter stagger-1">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-          <User className="h-4 w-4 text-[#6C4EF5]" />
-          <span>Profil Pengguna</span>
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+          Profil Pengguna
         </h3>
 
-        <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16 ring-2 ring-violet-600/30">
-            <AvatarImage src={user.avatarUrl} alt={user.name} />
-            <AvatarFallback className="text-base font-bold text-violet-700 dark:text-violet-300">
-              AS
-            </AvatarFallback>
-          </Avatar>
-          <div>
-            <h4 className="text-lg font-extrabold text-zinc-900 dark:text-white">
-              {user.name}
-            </h4>
+        {/* Avatar Inisial Nama */}
+        <div className="flex items-center gap-4 pb-1">
+          <div className="h-16 w-16 rounded-full bg-[#6C4EF5] text-white flex items-center justify-center text-xl font-black shadow-md shadow-violet-600/20 ring-4 ring-violet-500/10 shrink-0 select-none">
+            {getUserInitials(name || user.name)}
+          </div>
+
+          <div className="space-y-0.5">
+            <div className="flex items-center gap-2">
+              <h4 className="text-lg font-extrabold text-zinc-900 dark:text-white">
+                {name || user.name}
+              </h4>
+              <span className="px-2.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 text-[10px] font-bold">
+                Akun Aktif
+              </span>
+            </div>
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              {user.email}
+              {email || user.email}
             </p>
-            <span className="inline-block mt-1 px-2.5 py-0.5 rounded-full bg-violet-100 dark:bg-violet-950/70 text-violet-700 dark:text-violet-300 text-[10px] font-bold">
-              Akun Aktif
-            </span>
           </div>
         </div>
 
-        <form onSubmit={handleSaveProfile} className="space-y-3.5 pt-1">
+        {/* Formulir Ubah Nama & Email */}
+        <form
+          onSubmit={handleSaveProfile}
+          className="space-y-3.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]"
+        >
           <div className="space-y-1">
             <Label className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider">
               Nama Lengkap
@@ -109,6 +130,7 @@ export default function SettingsPage() {
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
+              placeholder="Tulis nama lengkap..."
               className="w-full h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 transition-all"
             />
           </div>
@@ -121,35 +143,35 @@ export default function SettingsPage() {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              placeholder="Tulis alamat email..."
               className="w-full h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 px-4 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 transition-all"
             />
           </div>
 
-          <div className="pt-1 flex items-center gap-3">
+          <div className="pt-2 flex items-center gap-3">
             <Button
               type="submit"
               className="h-11 rounded-2xl bg-[#6C4EF5] hover:bg-[#5638D6] text-white text-xs font-bold px-6 shadow-md shadow-violet-500/25 cursor-pointer"
             >
-              {isSaved ? "Tersimpan ✓" : "Perbarui Profil"}
+              {isSaved ? "Tersimpan" : "Perbarui Profil"}
             </Button>
             {isSaved && (
               <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
-                <Check className="h-3.5 w-3.5" /> Tersimpan
+                <Check className="h-3.5 w-3.5" /> Profil berhasil diperbarui
               </span>
             )}
           </div>
         </form>
       </div>
 
-      {/* Preferences & Theme Card */}
+      {/* Preferensi & Tema */}
       <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-6 shadow-sm space-y-4 transition-colors animate-card-enter stagger-2">
-        <h3 className="text-sm font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-          <Globe className="h-4 w-4 text-[#6C4EF5]" />
-          <span>Preferensi Tampilan & Sistem</span>
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+          Preferensi Sistem
         </h3>
 
         <div className="divide-y divide-black/[0.06] dark:divide-white/[0.08] text-xs">
-          {/* Dark Mode Switch */}
+          {/* Pilihan Tema */}
           <div className="flex items-center justify-between py-3.5">
             <div>
               <span className="font-bold block text-zinc-900 dark:text-white text-sm">
@@ -178,56 +200,40 @@ export default function SettingsPage() {
             </button>
           </div>
 
-          {/* Menu Kategori Keuangan */}
+          {/* Kategori Keuangan */}
           <div className="flex items-center justify-between py-3.5">
             <div>
               <span className="font-bold block text-zinc-900 dark:text-white text-sm">
                 Kategori Keuangan
               </span>
               <span className="text-zinc-500 dark:text-zinc-400">
-                Kelola {categories.length} kategori pemasukan dan pengeluaran
+                Kelola kategori transaksi dan batasan
               </span>
             </div>
             <Link
               href="/categories"
-              className="font-bold text-zinc-800 dark:text-zinc-200 bg-[#F5F5F7] dark:bg-[#202028] px-3.5 py-1.5 rounded-xl text-xs border border-black/[0.04] dark:border-white/10 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] border border-black/[0.06] dark:border-white/10 font-bold text-xs text-foreground hover:bg-muted active:scale-95 transition-all cursor-pointer"
             >
-              Kelola
+              <span>{categories.length} Kategori</span>
             </Link>
-          </div>
-
-
-          <div className="flex items-center justify-between py-3.5">
-            <div>
-              <span className="font-bold block text-zinc-900 dark:text-white text-sm">
-                Bahasa Tampilan
-              </span>
-              <span className="text-zinc-500 dark:text-zinc-400">
-                Bahasa Indonesia (ID)
-              </span>
-            </div>
-            <span className="font-bold text-zinc-800 dark:text-zinc-200 bg-[#F5F5F7] dark:bg-[#202028] px-3.5 py-1.5 rounded-xl text-xs">
-              Indonesia
-            </span>
           </div>
         </div>
       </div>
 
-      {/* Reset Data Card */}
+      {/* Reset Data Bawaan */}
       <div className="rounded-[28px] border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/25 p-6 space-y-3 transition-colors animate-card-enter stagger-3">
-        <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-extrabold text-sm">
-          <RotateCcw className="h-4 w-4" />
-          <span>Reset Data Demo PRD</span>
+        <div className="text-amber-800 dark:text-amber-300 font-extrabold text-sm">
+          Reset Data Bawaan
         </div>
         <p className="text-xs text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
-          Kembalikan seluruh data transaksi, saldo dompet, dan batas anggaran ke nilai awal PRD §10 & §15.
+          Kembalikan seluruh data transaksi, saldo dompet, dan batas anggaran ke nilai awal bawaan.
         </p>
         <Button
           onClick={handleReset}
           variant="outline"
           className="h-11 rounded-2xl border-amber-300 bg-white text-amber-800 hover:bg-amber-100 text-xs font-bold dark:bg-amber-900/80 dark:text-white dark:border-amber-700/80 cursor-pointer"
         >
-          {isResetDone ? "Data Telah Direset! ✓" : "Reset ke Data Default PRD"}
+          {isResetDone ? "Data Telah Direset" : "Reset ke Data Awal"}
         </Button>
       </div>
     </div>

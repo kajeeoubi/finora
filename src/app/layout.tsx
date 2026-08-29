@@ -16,6 +16,8 @@ export const metadata: Metadata = {
     "Pantau saldo dompet, catat pengeluaran & pemasukan, transfer antar dompet, dan kendalikan anggaran bulanan Anda dengan mudah.",
 };
 
+import { TooltipProvider } from "@/components/ui/tooltip";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,7 +26,9 @@ export default function RootLayout({
   return (
     <html lang="id" className={`${plusJakartaSans.variable} h-full antialiased`}>
       <body className={`${plusJakartaSans.className} min-h-full flex flex-col font-sans bg-[#F5F5F7] text-[#111115] dark:bg-[#0B0B0E] dark:text-white transition-colors`}>
-        <FinoraProvider>{children}</FinoraProvider>
+        <TooltipProvider delayDuration={150}>
+          <FinoraProvider>{children}</FinoraProvider>
+        </TooltipProvider>
       </body>
     </html>
   );

@@ -1,27 +1,22 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR, formatRelativeDateIndo } from "@/lib/formatters";
 import { CategoryIcon } from "@/components/shared/CategoryIcon";
 import { MarqueeText } from "@/components/shared/MarqueeText";
-import { ArrowRightLeft, Check, Filter, ArrowRight } from "lucide-react";
+import { ArrowRightLeft, ArrowRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 export function RecentTransactionsCard() {
   const { transactions, transfers, categories, wallets } = useFinora();
-  const [period, setPeriod] = useState("Bulanan");
 
-  // Merge transactions and transfers chronologically for recent activity
   const recentItems = React.useMemo(() => {
     const txItems = transactions.map((t) => ({
       id: t.id,
@@ -55,46 +50,26 @@ export function RecentTransactionsCard() {
 
   return (
     <div className="rounded-[28px] border border-black/[0.04] bg-white p-5 shadow-sm dark:bg-[#16161C] dark:border-white/[0.08] space-y-4 transition-colors">
-      {/* Header Row: Title on Left, Filter and View-All Icons on Right */}
+      {/* Header Row */}
       <div className="flex items-center justify-between">
         <h3 className="text-base font-bold text-foreground">
           Aktivitas Terkini
         </h3>
 
-        <div className="flex items-center gap-1.5">
-          {/* Funnel Filter Icon Button */}
-          <DropdownMenu>
-            <DropdownMenuTrigger
-              className="h-8 w-8 rounded-full flex items-center justify-center bg-[#F5F5F7] dark:bg-[#202028] text-zinc-600 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-all cursor-pointer outline-none shadow-sm"
-              title="Filter Periode"
+        {/* View All Icon Link */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              href="/transactions"
+              className="h-8 w-8 rounded-full flex items-center justify-center bg-[#F5F5F7] dark:bg-[#202028] text-zinc-600 dark:text-zinc-300 hover:bg-violet-100 hover:text-[#6C4EF5] dark:hover:bg-violet-950/60 dark:hover:text-violet-300 transition-all cursor-pointer shadow-sm"
             >
-              <Filter className="h-3.5 w-3.5 text-foreground" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-36 p-1.5">
-              <DropdownMenuLabel>Pilih Periode</DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              {["Semua", "Bulanan", "Mingguan"].map((p) => (
-                <DropdownMenuItem
-                  key={p}
-                  onClick={() => setPeriod(p)}
-                  className="flex items-center justify-between"
-                >
-                  <span>{p}</span>
-                  {period === p && <Check className="h-3.5 w-3.5 text-[#6C4EF5]" />}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* View All Icon Link placed to the right of Filter */}
-          <Link
-            href="/transactions"
-            className="h-8 w-8 rounded-full flex items-center justify-center bg-[#F5F5F7] dark:bg-[#202028] text-zinc-600 dark:text-zinc-300 hover:bg-violet-100 hover:text-[#6C4EF5] dark:hover:bg-violet-950/60 dark:hover:text-violet-300 transition-all cursor-pointer shadow-sm"
-            title="Lihat Semua Riwayat Transaksi"
-          >
-            <ArrowRight className="h-3.5 w-3.5" />
-          </Link>
-        </div>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Lihat Semua Riwayat Transaksi
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* Transaction List */}

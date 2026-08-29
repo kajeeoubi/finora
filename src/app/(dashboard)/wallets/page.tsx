@@ -3,6 +3,11 @@
 import React from "react";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR, formatDateIndo } from "@/lib/formatters";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import {
   Plus,
@@ -139,14 +144,20 @@ export default function WalletsPage() {
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => deleteWallet(wallet.id)}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-400 hover:text-red-400 rounded-xl transition-opacity cursor-pointer"
-                    title="Hapus Dompet"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => deleteWallet(wallet.id)}
+                        className="opacity-0 group-hover:opacity-100 p-2 text-zinc-400 hover:text-red-400 rounded-xl transition-opacity cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      Hapus Dompet
+                    </TooltipContent>
+                  </Tooltip>
                 </div>
 
                 {/* Account number if any */}

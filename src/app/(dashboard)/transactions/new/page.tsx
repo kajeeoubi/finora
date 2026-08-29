@@ -9,9 +9,15 @@ import { TransactionType } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, Check, ArrowLeft, ArrowRightLeft } from "lucide-react";
+import { AlertCircle, Check, ArrowLeft, ArrowRightLeft, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
 
 export default function NewTransactionPage() {
   const router = useRouter();
@@ -216,36 +222,57 @@ export default function NewTransactionPage() {
 
             {mode === "TRANSACTION" ? (
               <>
-                {/* Category Grid */}
+                {/* Category Dropdown */}
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground font-semibold">
                     Kategori
                   </Label>
-                  <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1">
-                    {filteredCategories.map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategoryId(cat.id)}
-                        className={cn(
-                          "flex flex-col items-center justify-center p-2.5 rounded-2xl border transition-all text-center gap-1",
-                          categoryId === cat.id
-                            ? "border-[#6C4EF5] bg-violet-50/80 ring-2 ring-violet-600/30 dark:bg-violet-950/40"
-                            : "border-black/[0.04] bg-[#F4F4F6] dark:bg-[#222228]"
+                  <DropdownMenu>
+                    <DropdownMenuTrigger className="w-full h-12 inline-flex items-center justify-between px-4 rounded-2xl border border-black/[0.06] bg-[#F4F4F6] text-sm font-bold text-foreground hover:bg-black/[0.04] dark:bg-[#222228] dark:border-white/10 dark:hover:bg-white/[0.06] transition-all cursor-pointer outline-none">
+                      <div className="flex items-center gap-2.5">
+                        {categories.find((c) => c.id === categoryId) ? (
+                          <>
+                            <CategoryIcon
+                              iconName={categories.find((c) => c.id === categoryId)!.icon}
+                              size="sm"
+                              bgColor={categories.find((c) => c.id === categoryId)!.color ? `${categories.find((c) => c.id === categoryId)!.color}20` : undefined}
+                              iconColor={categories.find((c) => c.id === categoryId)!.color || undefined}
+                            />
+                            <span>{categories.find((c) => c.id === categoryId)!.name}</span>
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground font-normal text-xs">Pilih Kategori...</span>
                         )}
-                      >
-                        <CategoryIcon
-                          iconName={cat.icon}
-                          size="sm"
-                          bgColor={cat.color ? `${cat.color}20` : undefined}
-                          iconColor={cat.color || undefined}
-                        />
-                        <span className="text-[11px] font-medium text-foreground truncate w-full">
-                          {cat.name}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
+                      </div>
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="start"
+                      className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5"
+                    >
+                      {filteredCategories.map((cat) => {
+                        const isSelected = categoryId === cat.id;
+                        return (
+                          <DropdownMenuItem
+                            key={cat.id}
+                            onClick={() => setCategoryId(cat.id)}
+                            className="flex items-center justify-between py-2 cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5">
+                              <CategoryIcon
+                                iconName={cat.icon}
+                                size="sm"
+                                bgColor={cat.color ? `${cat.color}20` : undefined}
+                                iconColor={cat.color || undefined}
+                              />
+                              <span className="font-bold text-sm">{cat.name}</span>
+                            </div>
+                            {isSelected && <Check className="h-4 w-4 text-[#6C4EF5]" />}
+                          </DropdownMenuItem>
+                        );
+                      })}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
                 {/* Wallet */}

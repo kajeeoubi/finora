@@ -9,7 +9,6 @@ import {
   Plus,
   Search,
   ArrowRightLeft,
-  Trash2,
   Filter,
   ChevronDown,
   Check,
@@ -28,7 +27,6 @@ export default function TransactionsPage() {
     transfers,
     categories,
     wallets,
-    deleteTransaction,
     setIsAddTransactionModalOpen,
     setIsTransferModalOpen,
   } = useFinora();
@@ -332,15 +330,6 @@ export default function TransactionsPage() {
                         {isIncome ? "Pemasukan" : "Pengeluaran"}
                       </span>
                     </div>
-
-                    <button
-                      type="button"
-                      onClick={() => deleteTransaction(item.id)}
-                      className="opacity-0 group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-all cursor-pointer -mr-1 mt-0.5 shrink-0 hidden sm:block"
-                      title="Hapus Transaksi"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
                   </div>
                 </div>
               );

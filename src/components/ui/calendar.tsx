@@ -12,6 +12,11 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
@@ -85,14 +90,20 @@ function Calendar({
       {/* Custom Header with Month & Year Editable Dropdowns and Navigation Arrows */}
       <div className="flex items-center justify-between px-1 pt-1 pb-2 border-b border-black/[0.04] dark:border-white/[0.06]">
         {/* Previous Month Arrow */}
-        <button
-          type="button"
-          onClick={handlePrevMonth}
-          className="h-7 w-7 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
-          title="Bulan Sebelumnya"
-        >
-          <ChevronLeft className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handlePrevMonth}
+              className="h-7 w-7 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Bulan Sebelumnya
+          </TooltipContent>
+        </Tooltip>
 
         {/* Month & Year Selectors */}
         <div className="flex items-center gap-1.5">
@@ -146,14 +157,20 @@ function Calendar({
         </div>
 
         {/* Next Month Arrow */}
-        <button
-          type="button"
-          onClick={handleNextMonth}
-          className="h-7 w-7 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
-          title="Bulan Berikutnya"
-        >
-          <ChevronRight className="h-4 w-4" />
-        </button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              onClick={handleNextMonth}
+              className="h-7 w-7 flex items-center justify-center rounded-lg border border-black/[0.08] dark:border-white/10 text-zinc-600 dark:text-zinc-300 hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-colors cursor-pointer"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            Bulan Berikutnya
+          </TooltipContent>
+        </Tooltip>
       </div>
 
       {/* DayPicker Grid */}

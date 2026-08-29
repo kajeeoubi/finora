@@ -54,6 +54,7 @@ export function AddTransactionDrawer() {
   }, [wallets, walletId]);
 
   const selectedWallet = wallets.find((w) => w.id === walletId) || wallets[0];
+  const selectedCategory = categories.find((c) => c.id === categoryId);
 
   const handleTypeChange = (newType: TransactionType) => {
     setType(newType);
@@ -206,42 +207,60 @@ export function AddTransactionDrawer() {
               </div>
             </div>
 
-            {/* Category Selector Grid */}
+            {/* Category Selector Dropdown */}
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider">
                 Pilih Kategori
               </Label>
-              <div className="grid grid-cols-4 gap-2 max-h-40 overflow-y-auto p-1">
-                {filteredCategories.map((cat) => {
-                  const isSelected = categoryId === cat.id;
-                  return (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => {
-                        setCategoryId(cat.id);
-                        setErrorMsg("");
-                      }}
-                      className={cn(
-                        "flex flex-col items-center justify-center p-2.5 rounded-2xl border transition-all text-center gap-1 cursor-pointer",
-                        isSelected
-                          ? "border-[#6C4EF5] bg-violet-50/80 ring-2 ring-violet-600/30 dark:bg-violet-950/50"
-                          : "border-black/[0.04] bg-[#F5F5F7] hover:bg-zinc-200 dark:bg-[#202028] dark:border-white/[0.06]"
-                      )}
-                    >
-                      <CategoryIcon
-                        iconName={cat.icon}
-                        size="sm"
-                        bgColor={cat.color ? `${cat.color}20` : undefined}
-                        iconColor={cat.color || undefined}
-                      />
-                      <span className="text-[11px] font-bold text-zinc-800 dark:text-zinc-200 truncate w-full">
-                        {cat.name}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger className="w-full h-12 inline-flex items-center justify-between px-4 rounded-2xl border border-black/[0.08] bg-[#F5F5F7] dark:bg-[#202028] dark:border-white/10 text-sm font-bold text-zinc-900 dark:text-white hover:bg-black/[0.04] dark:hover:bg-white/[0.06] transition-all cursor-pointer outline-none">
+                  <div className="flex items-center gap-2.5">
+                    {selectedCategory ? (
+                      <>
+                        <CategoryIcon
+                          iconName={selectedCategory.icon}
+                          size="sm"
+                          bgColor={selectedCategory.color ? `${selectedCategory.color}20` : undefined}
+                          iconColor={selectedCategory.color || undefined}
+                        />
+                        <span>{selectedCategory.name}</span>
+                      </>
+                    ) : (
+                      <span className="text-muted-foreground font-normal text-xs">Pilih Kategori...</span>
+                    )}
+                  </div>
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="start"
+                  className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5"
+                >
+                  {filteredCategories.map((cat) => {
+                    const isSelected = categoryId === cat.id;
+                    return (
+                      <DropdownMenuItem
+                        key={cat.id}
+                        onClick={() => {
+                          setCategoryId(cat.id);
+                          setErrorMsg("");
+                        }}
+                        className="flex items-center justify-between py-2 cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2.5">
+                          <CategoryIcon
+                            iconName={cat.icon}
+                            size="sm"
+                            bgColor={cat.color ? `${cat.color}20` : undefined}
+                            iconColor={cat.color || undefined}
+                          />
+                          <span className="font-bold text-sm">{cat.name}</span>
+                        </div>
+                        {isSelected && <Check className="h-4 w-4 text-[#6C4EF5]" />}
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             {/* Styled Wallet Selector Dropdown (Matching trigger width) */}

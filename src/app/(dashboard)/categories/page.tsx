@@ -2,8 +2,14 @@
 
 import React, { useState } from "react";
 import { useFinora } from "@/context/finora-context";
+import { formatIDR } from "@/lib/formatters";
 import { CategoryIcon } from "@/components/shared/CategoryIcon";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 import { Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +30,7 @@ export default function CategoriesPage() {
           Kategori Keuangan
         </h1>
         <p className="text-xs text-zinc-500 dark:text-zinc-400">
-          Klasifikasi transaksi pemasukan dan pengeluaran
+          Klasifikasi transaksi dan batasan pengeluaran bulanan
         </p>
       </div>
 
@@ -92,7 +98,7 @@ export default function CategoriesPage() {
         {filtered.map((cat) => (
           <div
             key={cat.id}
-            className="p-5 rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] shadow-sm flex flex-col justify-between items-center text-center gap-3 relative group transition-colors"
+            className="p-4 sm:p-5 rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] shadow-sm flex flex-col justify-between items-center text-center gap-2.5 relative group transition-colors"
           >
             <CategoryIcon
               iconName={cat.icon}
@@ -101,21 +107,40 @@ export default function CategoriesPage() {
               iconColor={cat.color || undefined}
             />
 
-            <div>
-              <h4 className="font-extrabold text-base text-zinc-900 dark:text-white">
+            <div className="space-y-1 w-full">
+              <h4 className="font-extrabold text-sm sm:text-base text-zinc-900 dark:text-white truncate">
                 {cat.name}
               </h4>
+              {cat.type === "EXPENSE" && (
+                <div>
+                  {cat.expenseLimit ? (
+                    <span className="text-[10px] sm:text-[11px] font-bold text-zinc-600 dark:text-zinc-300 bg-[#F5F5F7] dark:bg-[#202028] px-2.5 py-0.5 rounded-full inline-block tabular-nums">
+                      {formatIDR(cat.expenseLimit)}
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-medium text-zinc-400 dark:text-zinc-500">
+                      Tanpa batasan
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
 
             {!cat.isDefault && (
-              <button
-                type="button"
-                onClick={() => deleteCategory(cat.id)}
-                className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg transition-opacity cursor-pointer"
-                title="Hapus Kategori"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => deleteCategory(cat.id)}
+                    className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 p-1.5 text-zinc-400 hover:text-red-500 rounded-lg transition-opacity cursor-pointer"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  Hapus Kategori
+                </TooltipContent>
+              </Tooltip>
             )}
           </div>
         ))}

@@ -21,6 +21,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
 
 interface AppHeaderProps {
   title?: string;
@@ -50,6 +55,8 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
     if (pathname === "/wallets") return "Dompet";
     if (pathname === "/transactions") return "Riwayat Transaksi";
     if (pathname === "/budgets") return "Anggaran Bulanan";
+    if (pathname === "/planning") return "Rencana Keuangan";
+    if (pathname === "/reminders") return "Pengingat Tagihan";
     if (pathname === "/categories") return "Kategori";
     if (pathname === "/settings") return "Pengaturan";
     return "Finora";
@@ -57,22 +64,37 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
 
   const isDashboard = pathname === "/dashboard";
 
+  const getUserInitials = (name: string) => {
+    if (!name) return "FN";
+    const parts = name.trim().split(/\s+/);
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
+
+  const userInitials = getUserInitials(user.name);
+
   return (
     <header className="w-full px-4 pt-4 pb-2">
-      {/* Top Action Bar (Matching exact Screen 1 & Screen 2 top row) */}
+      {/* Top Action Bar */}
       <div className="flex items-center justify-between">
         {/* Left Side: Menu Drawer Trigger */}
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
-                title="Menu Navigasi"
-              >
-                <Menu className="h-5 w-5 text-foreground" />
-              </button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Menu className="h-5 w-5 text-foreground" />
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Menu Navigasi
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="start" className="w-56 p-2 rounded-2xl">
               <DropdownMenuLabel className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Menu Finora
@@ -104,6 +126,16 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
+                <Link href="/planning" className="cursor-pointer font-semibold text-sm">
+                  Rencana Keuangan
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/reminders" className="cursor-pointer font-semibold text-sm">
+                  Pengingat Tagihan
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
                 <Link href="/categories" className="cursor-pointer font-semibold text-sm">
                   Kategori
                 </Link>
@@ -127,42 +159,60 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
         {/* Right Side: Theme Toggle, Search, Notification & Avatar */}
         <div className="flex items-center gap-2">
           {/* Theme switcher */}
-          <button
-            type="button"
-            onClick={toggleTheme}
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
-            title="Ubah Tema"
-          >
-            {isDarkMode ? (
-              <Sun className="h-4 w-4 text-amber-400" />
-            ) : (
-              <Moon className="h-4 w-4 text-zinc-600" />
-            )}
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={toggleTheme}
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
+              >
+                {isDarkMode ? (
+                  <Sun className="h-4 w-4 text-amber-400" />
+                ) : (
+                  <Moon className="h-4 w-4 text-zinc-600" />
+                )}
+              </button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              {isDarkMode ? "Ganti ke Mode Terang" : "Ganti ke Mode Gelap"}
+            </TooltipContent>
+          </Tooltip>
 
           {/* Search button */}
-          <Link
-            href="/transactions"
-            className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
-            title="Cari Transaksi"
-          >
-            <Search className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
-          </Link>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Link
+                href="/transactions"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
+              >
+                <Search className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+              </Link>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">
+              Cari Transaksi
+            </TooltipContent>
+          </Tooltip>
 
           {/* Notification Bell */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
-                title="Notifikasi"
-              >
-                <Bell className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
-                {hasNotifications && (
-                  <span className="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#16161C]" />
-                )}
-              </button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="relative flex h-11 w-11 items-center justify-center rounded-full bg-white dark:bg-[#16161C] border border-black/[0.06] dark:border-white/[0.08] text-foreground shadow-sm hover:bg-muted active:scale-95 transition-all cursor-pointer"
+                  >
+                    <Bell className="h-4 w-4 text-zinc-600 dark:text-zinc-300" />
+                    {hasNotifications && (
+                      <span className="absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full bg-[#EF4444] ring-2 ring-white dark:ring-[#16161C]" />
+                    )}
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Pemberitahuan
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end" className="w-72 p-3 rounded-2xl">
               <DropdownMenuLabel className="font-bold text-xs uppercase tracking-wider text-muted-foreground">
                 Pemberitahuan Finora
@@ -191,25 +241,26 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
 
           {/* User Profile Avatar */}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button
-                type="button"
-                className="rounded-full ring-2 ring-violet-600/20 hover:ring-violet-600 transition-all cursor-pointer ml-1"
-              >
-                <Avatar className="h-11 w-11">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback className="font-bold text-violet-700 dark:text-violet-300">
-                    AS
-                  </AvatarFallback>
-                </Avatar>
-              </button>
-            </DropdownMenuTrigger>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className="h-11 w-11 rounded-full bg-[#6C4EF5] hover:bg-[#5638D6] text-white flex items-center justify-center font-bold text-sm shadow-sm ring-2 ring-violet-600/20 hover:ring-violet-600 transition-all cursor-pointer ml-1 select-none"
+                  >
+                    {userInitials}
+                  </button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                Profil Pengguna
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end" className="w-60 p-2 rounded-2xl">
               <div className="flex items-center gap-3 p-2">
-                <Avatar className="h-10 w-10">
-                  <AvatarImage src={user.avatarUrl} alt={user.name} />
-                  <AvatarFallback>AS</AvatarFallback>
-                </Avatar>
+                <div className="h-10 w-10 rounded-full bg-[#6C4EF5] text-white flex items-center justify-center font-bold text-sm shrink-0 select-none">
+                  {userInitials}
+                </div>
                 <div className="flex flex-col overflow-hidden">
                   <span className="text-sm font-bold text-zinc-900 dark:text-white truncate">
                     {user.name}
@@ -233,6 +284,11 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
               <DropdownMenuItem asChild>
                 <Link href="/budgets" className="cursor-pointer font-medium">
                   Anggaran
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/planning" className="cursor-pointer font-medium">
+                  Rencana & Wishlist
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>

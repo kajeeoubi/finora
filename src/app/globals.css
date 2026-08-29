@@ -212,3 +212,52 @@ h1, h2, h3, h4, h5, h6 {
   transform-origin: bottom;
   animation: bar-shoot-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+
+/* Print & PDF Export Styling */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 3mm 4mm;
+  }
+
+  html,
+  body {
+    background: #ffffff !important;
+    color: #111115 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Reset outer dashboard layout constraints during print */
+  body * {
+    visibility: hidden;
+  }
+
+  .print-document,
+  .print-document * {
+    visibility: visible;
+  }
+
+  .print-document {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  header,
+  nav,
+  .no-print {
+    display: none !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    box-shadow: none !important;
+  }
+}

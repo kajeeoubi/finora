@@ -36,6 +36,7 @@ export function AddCategoryDrawer() {
 
   const [name, setName] = useState("");
   const [type, setType] = useState<CategoryType>("EXPENSE");
+  const [expenseLimit, setExpenseLimit] = useState("");
   const [icon, setIcon] = useState("Utensils");
   const [color, setColor] = useState("#6C4EF5");
   const [iconSearch, setIconSearch] = useState("");
@@ -53,11 +54,15 @@ export function AddCategoryDrawer() {
       return;
     }
 
+    const parsedLimit = expenseLimit.replace(/\D/g, "");
+
     const res = addCategory({
       name: name.trim(),
       type,
       icon,
       color,
+      expenseLimit:
+        type === "EXPENSE" && parsedLimit ? Number(parsedLimit) : undefined,
     });
 
     if (res.success) {
@@ -66,6 +71,7 @@ export function AddCategoryDrawer() {
         setIsSuccess(false);
         setIsAddCategoryModalOpen(false);
         setName("");
+        setExpenseLimit("");
         setIconSearch("");
       }, 700);
     } else {
@@ -144,7 +150,43 @@ export function AddCategoryDrawer() {
               />
             </div>
 
-            {/* Icon Picker with Bounded Scrollable Container */}
+            {/* Batasan Pengeluaran Bulanan (Hanya untuk Kategori Pengeluaran) */}
+            {type === "EXPENSE" && (
+              <div className="space-y-1">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider">
+                    Batasan Pengeluaran
+                  </Label>
+                  <span className="text-[10px] text-zinc-400 font-semibold">
+                    Opsional / bulan
+                  </span>
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-xs font-black text-zinc-400">
+                    Rp
+                  </span>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    placeholder="Tulis nominal batasan..."
+                    value={
+                      expenseLimit
+                        ? Number(
+                            expenseLimit.replace(/\D/g, "")
+                          ).toLocaleString("id-ID")
+                        : ""
+                    }
+                    onChange={(e) => {
+                      const val = e.target.value.replace(/\D/g, "");
+                      setExpenseLimit(val);
+                    }}
+                    className="w-full h-11 pl-10 pr-4 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.08] dark:border-white/10 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-violet-600 tabular-nums"
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Icon Picker */}
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider block">
                 Pilih Ikon ({filteredIcons.length})

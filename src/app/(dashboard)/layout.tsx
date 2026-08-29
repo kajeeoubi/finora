@@ -7,6 +7,8 @@ import { AddTransactionDrawer } from "@/components/drawers/AddTransactionDrawer"
 import { AddWalletDrawer } from "@/components/drawers/AddWalletDrawer";
 import { AddBudgetDrawer } from "@/components/drawers/AddBudgetDrawer";
 import { AddCategoryDrawer } from "@/components/drawers/AddCategoryDrawer";
+import { AddWishlistDrawer } from "@/components/drawers/AddWishlistDrawer";
+import { AddReminderDrawer } from "@/components/drawers/AddReminderDrawer";
 
 export default function DashboardLayout({
   children,
@@ -31,6 +33,8 @@ export default function DashboardLayout({
       <AddWalletDrawer />
       <AddBudgetDrawer />
       <AddCategoryDrawer />
+      <AddWishlistDrawer />
+      <AddReminderDrawer />
     </div>
   );
 }

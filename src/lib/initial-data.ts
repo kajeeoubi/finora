@@ -5,6 +5,8 @@ import {
   Transfer,
   Budget,
   UserProfile,
+  WishlistItem,
+  BillReminder,
 } from "@/types";
 
 export const INITIAL_USER: UserProfile = {
@@ -16,13 +18,13 @@ export const INITIAL_USER: UserProfile = {
 
 export const INITIAL_CATEGORIES: Category[] = [
   // Pengeluaran (Expense)
-  { id: "cat-food", name: "Food & Drink", type: "EXPENSE", icon: "Utensils", color: "#6C4EF5", isDefault: true },
-  { id: "cat-transport", name: "Transport", type: "EXPENSE", icon: "Car", color: "#0EA5E9", isDefault: true },
-  { id: "cat-shopping", name: "Shopping", type: "EXPENSE", icon: "ShoppingBag", color: "#F59E0B", isDefault: true },
-  { id: "cat-bills", name: "Tagihan & Utilitas", type: "EXPENSE", icon: "Receipt", color: "#EF4444", isDefault: true },
-  { id: "cat-entertainment", name: "Entertainment", type: "EXPENSE", icon: "Gamepad2", color: "#A855F7", isDefault: true },
-  { id: "cat-health", name: "Kesehatan", type: "EXPENSE", icon: "HeartPulse", color: "#10B981", isDefault: true },
-  { id: "cat-education", name: "Edukasi", type: "EXPENSE", icon: "GraduationCap", color: "#3B82F6", isDefault: true },
+  { id: "cat-food", name: "Food & Drink", type: "EXPENSE", icon: "Utensils", color: "#6C4EF5", expenseLimit: 1000000, isDefault: true },
+  { id: "cat-transport", name: "Transport", type: "EXPENSE", icon: "Car", color: "#0EA5E9", expenseLimit: 500000, isDefault: true },
+  { id: "cat-shopping", name: "Shopping", type: "EXPENSE", icon: "ShoppingBag", color: "#F59E0B", expenseLimit: 300000, isDefault: true },
+  { id: "cat-bills", name: "Tagihan & Utilitas", type: "EXPENSE", icon: "Receipt", color: "#EF4444", expenseLimit: 750000, isDefault: true },
+  { id: "cat-entertainment", name: "Entertainment", type: "EXPENSE", icon: "Gamepad2", color: "#A855F7", expenseLimit: 400000, isDefault: true },
+  { id: "cat-health", name: "Kesehatan", type: "EXPENSE", icon: "HeartPulse", color: "#10B981", expenseLimit: 250000, isDefault: true },
+  { id: "cat-education", name: "Edukasi", type: "EXPENSE", icon: "GraduationCap", color: "#3B82F6", expenseLimit: 500000, isDefault: true },
   { id: "cat-other-exp", name: "Lainnya", type: "EXPENSE", icon: "Package", color: "#64748B", isDefault: true },
 
   // Pemasukan (Income)
@@ -232,5 +234,93 @@ export const INITIAL_TRANSFERS: Transfer[] = [
     note: "Tarik Tunai ATM untuk Operasional",
     transferAt: new Date(currentYear, currentMonth - 1, 1, 10, 30).toISOString(),
     createdAt: "2026-08-01T10:30:00.000Z",
+  },
+];
+
+export const INITIAL_WISHLISTS: WishlistItem[] = [
+  {
+    id: "wish-1",
+    name: "MacBook Pro M3",
+    targetAmount: 28000000,
+    savedAmount: 18500000,
+    targetDate: new Date(currentYear, 11, 31).toISOString(),
+    note: "Upgrade perangkat kerja untuk coding & desain",
+    isCompleted: false,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "wish-2",
+    name: "Liburan ke Jepang",
+    targetAmount: 20000000,
+    savedAmount: 12000000,
+    targetDate: new Date(currentYear + 1, 3, 30).toISOString(),
+    note: "Tiket pesawat, akomodasi, & kuliner Tokyo-Kyoto",
+    isCompleted: false,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "wish-3",
+    name: "Dana Darurat 6 Bulan",
+    targetAmount: 30000000,
+    savedAmount: 30000000,
+    targetDate: new Date(currentYear, currentMonth - 1, 1).toISOString(),
+    note: "Fondasi keuangan stabil dan aman",
+    isCompleted: true,
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+];
+
+export const INITIAL_REMINDERS: BillReminder[] = [
+  {
+    id: "rem-1",
+    title: "Tagihan Listrik PLN",
+    amount: 350000,
+    dueDate: new Date(currentYear, currentMonth - 1, 5).toISOString(),
+    categoryId: "cat-bills",
+    walletId: "wallet-bca",
+    isPaid: true,
+    paidAt: new Date(currentYear, currentMonth - 1, 4).toISOString(),
+    note: "Listrik Pascabayar Rumah",
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "rem-2",
+    title: "Internet & WiFi IndiHome",
+    amount: 280000,
+    dueDate: new Date(currentYear, currentMonth - 1, 15).toISOString(),
+    categoryId: "cat-bills",
+    walletId: "wallet-mandiri",
+    isPaid: false,
+    note: "Paket 50 Mbps",
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "rem-3",
+    title: "BPJS Kesehatan",
+    amount: 150000,
+    dueDate: new Date(currentYear, currentMonth - 1, 10).toISOString(),
+    categoryId: "cat-health",
+    walletId: "wallet-bca",
+    isPaid: false,
+    note: "Iuran Kelas 1 Keluarga",
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
+  },
+  {
+    id: "rem-4",
+    title: "Langganan Spotify & Netflix",
+    amount: 186000,
+    dueDate: new Date(currentYear, currentMonth - 1, 25).toISOString(),
+    categoryId: "cat-entertainment",
+    walletId: "wallet-gopay",
+    isPaid: false,
+    note: "Autodebit langganan",
+    createdAt: "2026-08-01T00:00:00.000Z",
+    updatedAt: "2026-08-01T00:00:00.000Z",
   },
 ];
