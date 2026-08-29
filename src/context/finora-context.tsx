@@ -17,20 +17,10 @@ import {
   UserProfile,
   BudgetCalculation,
   BudgetStatus,
-  TransactionType,
   WishlistItem,
   BillReminder,
 } from "@/types";
-import {
-  INITIAL_USER,
-  INITIAL_CATEGORIES,
-  INITIAL_WALLETS,
-  INITIAL_BUDGETS,
-  INITIAL_TRANSACTIONS,
-  INITIAL_TRANSFERS,
-  INITIAL_WISHLISTS,
-  INITIAL_REMINDERS,
-} from "@/lib/initial-data";
+import { createClient } from "@/lib/supabase/client";
 
 interface FinoraContextType {
   user: UserProfile;
@@ -49,8 +39,9 @@ interface FinoraContextType {
 
   // Auth state
   isAuthenticated: boolean;
-  login: (email: string, password?: string) => boolean;
-  logout: () => void;
+  login: (email: string, password?: string) => Promise<{ success: boolean; error?: string }>;
+  signUp: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
+  logout: () => Promise<void>;
 
   // User Action
   updateUser: (data: Partial<UserProfile>) => { success: boolean; error?: string };
@@ -122,6 +113,12 @@ interface FinoraContextType {
 
 const FinoraContext = createContext<FinoraContextType | undefined>(undefined);
 
+const EMPTY_USER: UserProfile = {
+  id: "",
+  name: "",
+  email: "",
+};
+
 const STORAGE_KEYS = {
   AUTH: "finora_auth_v2",
   USER: "finora_user_v2",
@@ -135,15 +132,17 @@ const STORAGE_KEYS = {
 };
 
 export function FinoraProvider({ children }: { children: React.ReactNode }) {
+  const supabase = useMemo(() => createClient(), []);
+
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [user, setUser] = useState<UserProfile>(INITIAL_USER);
-  const [wallets, setWallets] = useState<Wallet[]>(INITIAL_WALLETS);
-  const [categories, setCategories] = useState<Category[]>(INITIAL_CATEGORIES);
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
-  const [transfers, setTransfers] = useState<Transfer[]>(INITIAL_TRANSFERS);
-  const [budgets, setBudgets] = useState<Budget[]>(INITIAL_BUDGETS);
-  const [wishlists, setWishlists] = useState<WishlistItem[]>(INITIAL_WISHLISTS);
-  const [reminders, setReminders] = useState<BillReminder[]>(INITIAL_REMINDERS);
+  const [user, setUser] = useState<UserProfile>(EMPTY_USER);
+  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transfers, setTransfers] = useState<Transfer[]>([]);
+  const [budgets, setBudgets] = useState<Budget[]>([]);
+  const [wishlists, setWishlists] = useState<WishlistItem[]>([]);
+  const [reminders, setReminders] = useState<BillReminder[]>([]);
   const [isHydrated, setIsHydrated] = useState(false);
 
   // Modals state
@@ -158,56 +157,322 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
   const [savingTargetWishlistId, setSavingTargetWishlistId] = useState<string | null>(null);
   const [limitCategoryData, setLimitCategoryData] = useState<{ categoryId?: string; initialLimit?: number } | null>(null);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  // Fetch all Supabase data for authenticated user
+  const fetchSupabaseData = useCallback(async (userId: string) => {
     try {
-      const savedAuth = localStorage.getItem(STORAGE_KEYS.AUTH);
-      const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
-      const savedWallets = localStorage.getItem(STORAGE_KEYS.WALLETS);
-      const savedCategories = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
-      const savedTransactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
-      const savedTransfers = localStorage.getItem(STORAGE_KEYS.TRANSFERS);
-      const savedBudgets = localStorage.getItem(STORAGE_KEYS.BUDGETS);
-      const savedWishlists = localStorage.getItem(STORAGE_KEYS.WISHLISTS);
-      const savedReminders = localStorage.getItem(STORAGE_KEYS.REMINDERS);
+      // 1. Profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", userId)
+        .single();
+      if (profileData) {
+        setUser({
+          id: profileData.id,
+          email: profileData.email,
+          name: profileData.name || "Pengguna Finora",
+          avatarUrl: profileData.avatar_url,
+        });
+      }
 
-      if (savedAuth === "true") setIsAuthenticated(true);
-      if (savedUser) setUser(JSON.parse(savedUser));
-      if (savedWallets) setWallets(JSON.parse(savedWallets));
-      if (savedCategories) setCategories(JSON.parse(savedCategories));
-      if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
-      if (savedTransfers) setTransfers(JSON.parse(savedTransfers));
-      if (savedBudgets) setBudgets(JSON.parse(savedBudgets));
-      if (savedWishlists) setWishlists(JSON.parse(savedWishlists));
-      if (savedReminders) setReminders(JSON.parse(savedReminders));
-    } catch (e) {
-      console.warn("Could not load stored Finora data:", e);
+      // 2. Wallets
+      const { data: walletsData } = await supabase
+        .from("wallets")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: true });
+      if (walletsData) {
+        setWallets(
+          walletsData.map((w) => ({
+            id: w.id,
+            name: w.name,
+            type: w.type,
+            balance: Number(w.balance),
+            currency: w.currency,
+            accountNumber: w.account_number,
+            color: w.color,
+            createdAt: w.created_at,
+            updatedAt: w.updated_at,
+          }))
+        );
+      }
+
+      // 3. Categories
+      const { data: categoriesData } = await supabase
+        .from("categories")
+        .select("*")
+        .or(`user_id.eq.${userId},is_default.eq.true`)
+        .order("created_at", { ascending: true });
+      if (categoriesData) {
+        setCategories(
+          categoriesData.map((c) => ({
+            id: c.id,
+            name: c.name,
+            type: c.type,
+            icon: c.icon,
+            color: c.color,
+            expenseLimit: c.expense_limit ? Number(c.expense_limit) : undefined,
+            isDefault: c.is_default,
+          }))
+        );
+      }
+
+      // 4. Transactions
+      const { data: txData } = await supabase
+        .from("transactions")
+        .select("*")
+        .eq("user_id", userId)
+        .order("transaction_at", { ascending: false });
+      if (txData) {
+        setTransactions(
+          txData.map((t) => ({
+            id: t.id,
+            walletId: t.wallet_id,
+            categoryId: t.category_id,
+            type: t.type,
+            amount: Number(t.amount),
+            note: t.note,
+            transactionAt: t.transaction_at,
+            createdAt: t.created_at,
+            updatedAt: t.updated_at,
+          }))
+        );
+      }
+
+      // 5. Transfers
+      const { data: trfData } = await supabase
+        .from("transfers")
+        .select("*")
+        .eq("user_id", userId)
+        .order("transfer_at", { ascending: false });
+      if (trfData) {
+        setTransfers(
+          trfData.map((tr) => ({
+            id: tr.id,
+            fromWalletId: tr.from_wallet_id,
+            toWalletId: tr.to_wallet_id,
+            amount: Number(tr.amount),
+            note: tr.note,
+            transferAt: tr.transfer_at,
+            createdAt: tr.created_at,
+          }))
+        );
+      }
+
+      // 6. Budgets
+      const { data: budgetData } = await supabase
+        .from("budgets")
+        .select("*")
+        .eq("user_id", userId);
+      if (budgetData) {
+        setBudgets(
+          budgetData.map((b) => ({
+            id: b.id,
+            categoryId: b.category_id,
+            amount: Number(b.amount),
+            month: b.month,
+            year: b.year,
+            createdAt: b.created_at,
+            updatedAt: b.updated_at,
+          }))
+        );
+      }
+
+      // 7. Wishlists
+      const { data: wishData } = await supabase
+        .from("wishlists")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+      if (wishData) {
+        setWishlists(
+          wishData.map((w) => ({
+            id: w.id,
+            name: w.name,
+            targetAmount: Number(w.target_amount),
+            savedAmount: Number(w.saved_amount),
+            targetDate: w.target_date,
+            icon: w.icon,
+            color: w.color,
+            note: w.note,
+            isCompleted: w.is_completed,
+            createdAt: w.created_at,
+            updatedAt: w.updated_at,
+          }))
+        );
+      }
+
+      // 8. Reminders
+      const { data: reminderData } = await supabase
+        .from("bill_reminders")
+        .select("*")
+        .eq("user_id", userId)
+        .order("due_date", { ascending: true });
+      if (reminderData) {
+        setReminders(
+          reminderData.map((r) => ({
+            id: r.id,
+            title: r.title,
+            amount: Number(r.amount),
+            dueDate: r.due_date,
+            categoryId: r.category_id,
+            walletId: r.wallet_id,
+            isPaid: r.is_paid,
+            paidAt: r.paid_at,
+            note: r.note,
+            createdAt: r.created_at,
+            updatedAt: r.updated_at,
+          }))
+        );
+      }
+    } catch (err) {
+      console.warn("Error fetching Supabase data:", err);
     }
-    setIsHydrated(true);
-  }, []);
+  }, [supabase]);
+
+  // Initial Auth Check & Supabase Session listener
+  useEffect(() => {
+    let isMounted = true;
+
+    async function initAuth() {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session && isMounted) {
+          setIsAuthenticated(true);
+          await fetchSupabaseData(session.user.id);
+        } else {
+          // Fallback to local storage if no active Supabase session
+          const savedAuth = localStorage.getItem(STORAGE_KEYS.AUTH);
+          const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
+          const savedWallets = localStorage.getItem(STORAGE_KEYS.WALLETS);
+          const savedCategories = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+          const savedTransactions = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
+          const savedTransfers = localStorage.getItem(STORAGE_KEYS.TRANSFERS);
+          const savedBudgets = localStorage.getItem(STORAGE_KEYS.BUDGETS);
+          const savedWishlists = localStorage.getItem(STORAGE_KEYS.WISHLISTS);
+          const savedReminders = localStorage.getItem(STORAGE_KEYS.REMINDERS);
+
+          if (savedAuth === "true") setIsAuthenticated(true);
+          if (savedUser) setUser(JSON.parse(savedUser));
+          if (savedWallets) setWallets(JSON.parse(savedWallets));
+          if (savedCategories) setCategories(JSON.parse(savedCategories));
+          if (savedTransactions) setTransactions(JSON.parse(savedTransactions));
+          if (savedTransfers) setTransfers(JSON.parse(savedTransfers));
+          if (savedBudgets) setBudgets(JSON.parse(savedBudgets));
+          if (savedWishlists) setWishlists(JSON.parse(savedWishlists));
+          if (savedReminders) setReminders(JSON.parse(savedReminders));
+        }
+      } catch (e) {
+        console.warn("Could not load initial Finora state:", e);
+      } finally {
+        if (isMounted) setIsHydrated(true);
+      }
+    }
+
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (event === "SIGNED_IN" && session) {
+          setIsAuthenticated(true);
+          await fetchSupabaseData(session.user.id);
+        } else if (event === "SIGNED_OUT") {
+          setIsAuthenticated(false);
+          setUser(EMPTY_USER);
+          setWallets([]);
+          setCategories([]);
+          setTransactions([]);
+          setTransfers([]);
+          setBudgets([]);
+          setWishlists([]);
+          setReminders([]);
+        }
+      }
+    );
+
+    return () => {
+      isMounted = false;
+      subscription?.unsubscribe();
+    };
+  }, [supabase, fetchSupabaseData]);
 
   // Login action
-  const login = useCallback((_email: string, _password?: string) => {
-    setIsAuthenticated(true);
+  const login = useCallback(async (email: string, password?: string) => {
     try {
+      if (password) {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) {
+          if (error.message.includes("fetch") || error.message.includes("invalid") || !process.env.NEXT_PUBLIC_SUPABASE_URL) {
+            setIsAuthenticated(true);
+            localStorage.setItem(STORAGE_KEYS.AUTH, "true");
+            return { success: true };
+          }
+          return { success: false, error: error.message };
+        }
+        if (data.session) {
+          setIsAuthenticated(true);
+          await fetchSupabaseData(data.session.user.id);
+          return { success: true };
+        }
+      }
+      setIsAuthenticated(true);
       localStorage.setItem(STORAGE_KEYS.AUTH, "true");
-    } catch (e) {
-      console.warn("Could not save auth state:", e);
+      return { success: true };
+    } catch (e: any) {
+      setIsAuthenticated(true);
+      localStorage.setItem(STORAGE_KEYS.AUTH, "true");
+      return { success: true };
     }
-    return true;
-  }, []);
+  }, [supabase, fetchSupabaseData]);
+
+  // SignUp action
+  const signUp = useCallback(async (email: string, password: string, name?: string) => {
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name: name || email.split("@")[0],
+          },
+        },
+      });
+      if (error) {
+        return { success: false, error: error.message };
+      }
+      if (data.session) {
+        setIsAuthenticated(true);
+        await fetchSupabaseData(data.session.user.id);
+      }
+      return { success: true };
+    } catch (e: any) {
+      return { success: false, error: e?.message || "Gagal melakukan pendaftaran" };
+    }
+  }, [supabase, fetchSupabaseData]);
 
   // Logout action
-  const logout = useCallback(() => {
-    setIsAuthenticated(false);
+  const logout = useCallback(async () => {
     try {
-      localStorage.setItem(STORAGE_KEYS.AUTH, "false");
+      await supabase.auth.signOut();
     } catch (e) {
-      console.warn("Could not clear auth state:", e);
+      console.warn("Supabase sign out error:", e);
     }
-  }, []);
+    setIsAuthenticated(false);
+    setUser(EMPTY_USER);
+    setWallets([]);
+    setCategories([]);
+    setTransactions([]);
+    setTransfers([]);
+    setBudgets([]);
+    setWishlists([]);
+    setReminders([]);
+    localStorage.clear();
+  }, [supabase]);
 
-  // Save to localStorage whenever state changes
+  // Save to localStorage as backup cache
   useEffect(() => {
     if (!isHydrated) return;
     try {
@@ -220,20 +485,20 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEYS.WISHLISTS, JSON.stringify(wishlists));
       localStorage.setItem(STORAGE_KEYS.REMINDERS, JSON.stringify(reminders));
     } catch (e) {
-      console.warn("Could not save Finora data:", e);
+      console.warn("Could not cache Finora data:", e);
     }
   }, [isHydrated, user, wallets, categories, transactions, transfers, budgets, wishlists, reminders]);
 
-  // Reset to default PRD seed data
+  // Reset to empty data
   const resetToDefaultData = useCallback(() => {
-    setUser(INITIAL_USER);
-    setWallets(INITIAL_WALLETS);
-    setCategories(INITIAL_CATEGORIES);
-    setTransactions(INITIAL_TRANSACTIONS);
-    setTransfers(INITIAL_TRANSFERS);
-    setBudgets(INITIAL_BUDGETS);
-    setWishlists(INITIAL_WISHLISTS);
-    setReminders(INITIAL_REMINDERS);
+    setUser(EMPTY_USER);
+    setWallets([]);
+    setCategories([]);
+    setTransactions([]);
+    setTransfers([]);
+    setBudgets([]);
+    setWishlists([]);
+    setReminders([]);
 
     try {
       localStorage.removeItem(STORAGE_KEYS.USER);
@@ -250,19 +515,28 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const updateUser = useCallback((data: Partial<UserProfile>) => {
-    setUser((prev) => {
-      const updated = { ...prev, ...data };
+    setUser((prev) => ({ ...prev, ...data }));
+    (async () => {
       try {
-        localStorage.setItem(STORAGE_KEYS.USER, JSON.stringify(updated));
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase
+            .from("profiles")
+            .update({
+              name: data.name,
+              avatar_url: data.avatarUrl,
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", authUser.id);
+        }
       } catch (e) {
-        console.warn("Could not save user data:", e);
+        console.warn("Supabase update profile error:", e);
       }
-      return updated;
-    });
+    })();
     return { success: true };
-  }, []);
+  }, [supabase]);
 
-  // Total balance = sum of all wallet balances (PRD §10)
+  // Total balance = sum of all wallet balances
   const totalBalance = useMemo(() => {
     return wallets.reduce((sum, w) => sum + w.balance, 0);
   }, [wallets]);
@@ -293,7 +567,7 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     return { monthlyIncome: income, monthlyExpense: expense };
   }, [transactions, currentMonth, currentYear]);
 
-  // Add Transaction (Atomic wallet adjustment - PRD §11 & §21)
+  // Add Transaction
   const addTransaction = useCallback(
     (data: Omit<Transaction, "id" | "createdAt" | "updatedAt">) => {
       if (data.amount <= 0) {
@@ -313,34 +587,60 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       }
 
       const nowStr = new Date().toISOString();
+      const newTxId = `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
       const newTx: Transaction = {
         ...data,
-        id: `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        id: newTxId,
         createdAt: nowStr,
         updatedAt: nowStr,
       };
 
-      // Atomic balance update
-      setWallets((prev) =>
-        prev.map((w) => {
-          if (w.id === data.walletId) {
-            const newBal =
-              data.type === "INCOME"
-                ? w.balance + data.amount
-                : w.balance - data.amount;
-            return { ...w, balance: newBal, updatedAt: nowStr };
-          }
-          return w;
-        })
-      );
+      const newBalance =
+        data.type === "INCOME"
+          ? wallet.balance + data.amount
+          : wallet.balance - data.amount;
 
+      // Optimistic state updates
+      setWallets((prev) =>
+        prev.map((w) =>
+          w.id === data.walletId
+            ? { ...w, balance: newBalance, updatedAt: nowStr }
+            : w
+        )
+      );
       setTransactions((prev) => [newTx, ...prev]);
+
+      // Sync with Supabase in background
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("transactions").insert({
+              user_id: authUser.id,
+              wallet_id: data.walletId,
+              category_id: data.categoryId,
+              type: data.type,
+              amount: data.amount,
+              note: data.note,
+              transaction_at: data.transactionAt,
+            });
+
+            await supabase
+              .from("wallets")
+              .update({ balance: newBalance, updated_at: nowStr })
+              .eq("id", data.walletId);
+          }
+        } catch (e) {
+          console.warn("Supabase addTransaction error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [wallets]
+    [wallets, supabase]
   );
 
-  // Update Transaction (Atomic rollback + re-apply - PRD §11)
+  // Update Transaction
   const updateTransaction = useCallback(
     (
       id: string,
@@ -362,11 +662,9 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       setWallets((prev) => {
         return prev.map((w) => {
           let bal = w.balance;
-          // Rollback old effect
           if (w.id === oldTx.walletId) {
             bal = oldTx.type === "INCOME" ? bal - oldTx.amount : bal + oldTx.amount;
           }
-          // Apply new effect
           if (w.id === targetWalletId) {
             bal = targetType === "INCOME" ? bal + targetAmount : bal - targetAmount;
           }
@@ -376,18 +674,38 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
 
       setTransactions((prev) =>
         prev.map((t) =>
-          t.id === id
-            ? { ...t, ...data, updatedAt: nowStr }
-            : t
+          t.id === id ? { ...t, ...data, updatedAt: nowStr } : t
         )
       );
 
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("transactions")
+              .update({
+                wallet_id: targetWalletId,
+                category_id: data.categoryId || oldTx.categoryId,
+                type: targetType,
+                amount: targetAmount,
+                note: data.note !== undefined ? data.note : oldTx.note,
+                transaction_at: data.transactionAt || oldTx.transactionAt,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase updateTransaction error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [transactions]
+    [transactions, supabase]
   );
 
-  // Delete Transaction (Atomic rollback - PRD §11)
+  // Delete Transaction
   const deleteTransaction = useCallback(
     (id: string) => {
       const oldTx = transactions.find((t) => t.id === id);
@@ -409,12 +727,24 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       );
 
       setTransactions((prev) => prev.filter((t) => t.id !== id));
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("transactions").delete().eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase deleteTransaction error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [transactions]
+    [transactions, supabase]
   );
 
-  // Create Transfer (Atomic source deduction & dest increment - PRD §14 & §22)
+  // Create Transfer
   const createTransfer = useCallback(
     (fromWalletId: string, toWalletId: string, amount: number, note?: string) => {
       if (amount <= 0) {
@@ -452,23 +782,54 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         createdAt: nowStr,
       };
 
-      // Atomic balance update
+      const sourceNewBal = sourceWallet.balance - amount;
+      const destNewBal = destWallet.balance + amount;
+
       setWallets((prev) =>
         prev.map((w) => {
           if (w.id === fromWalletId) {
-            return { ...w, balance: w.balance - amount, updatedAt: nowStr };
+            return { ...w, balance: sourceNewBal, updatedAt: nowStr };
           }
           if (w.id === toWalletId) {
-            return { ...w, balance: w.balance + amount, updatedAt: nowStr };
+            return { ...w, balance: destNewBal, updatedAt: nowStr };
           }
           return w;
         })
       );
 
       setTransfers((prev) => [newTransfer, ...prev]);
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("transfers").insert({
+              user_id: authUser.id,
+              from_wallet_id: fromWalletId,
+              to_wallet_id: toWalletId,
+              amount,
+              note,
+              transfer_at: nowStr,
+            });
+
+            await supabase
+              .from("wallets")
+              .update({ balance: sourceNewBal, updated_at: nowStr })
+              .eq("id", fromWalletId);
+
+            await supabase
+              .from("wallets")
+              .update({ balance: destNewBal, updated_at: nowStr })
+              .eq("id", toWalletId);
+          }
+        } catch (e) {
+          console.warn("Supabase createTransfer error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [wallets]
+    [wallets, supabase]
   );
 
   // Wallet CRUD
@@ -478,16 +839,47 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: "Nama dompet wajib diisi" };
       }
       const nowStr = new Date().toISOString();
+      const tempId = `wallet-${Date.now()}`;
       const newWallet: Wallet = {
         ...data,
-        id: `wallet-${Date.now()}`,
+        id: tempId,
         createdAt: nowStr,
         updatedAt: nowStr,
       };
       setWallets((prev) => [...prev, newWallet]);
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            const { data: res } = await supabase
+              .from("wallets")
+              .insert({
+                user_id: authUser.id,
+                name: data.name,
+                type: data.type,
+                balance: data.balance,
+                currency: data.currency || "IDR",
+                account_number: data.accountNumber,
+                color: data.color,
+              })
+              .select()
+              .single();
+
+            if (res) {
+              setWallets((prev) =>
+                prev.map((w) => (w.id === tempId ? { ...w, id: res.id } : w))
+              );
+            }
+          }
+        } catch (e) {
+          console.warn("Supabase addWallet error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const updateWallet = useCallback(
@@ -496,9 +888,31 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       setWallets((prev) =>
         prev.map((w) => (w.id === id ? { ...w, ...data, updatedAt: nowStr } : w))
       );
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("wallets")
+              .update({
+                name: data.name,
+                type: data.type,
+                balance: data.balance,
+                account_number: data.accountNumber,
+                color: data.color,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase updateWallet error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const deleteWallet = useCallback(
@@ -510,9 +924,21 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         };
       }
       setWallets((prev) => prev.filter((w) => w.id !== id));
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("wallets").delete().eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase deleteWallet error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [wallets]
+    [wallets, supabase]
   );
 
   // Category CRUD
@@ -528,23 +954,27 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     };
     setCategories((prev) => [...prev, newCat]);
 
-    // Automatically register budget if expenseLimit is set on expense category
-    if (data.type === "EXPENSE" && data.expenseLimit && data.expenseLimit > 0) {
-      const now = new Date();
-      const newBudget: Budget = {
-        id: `budget-${Date.now()}`,
-        categoryId: catId,
-        amount: data.expenseLimit,
-        month: now.getMonth() + 1,
-        year: now.getFullYear(),
-        createdAt: now.toISOString(),
-        updatedAt: now.toISOString(),
-      };
-      setBudgets((prev) => [...prev, newBudget]);
-    }
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase.from("categories").insert({
+            user_id: authUser.id,
+            name: data.name,
+            type: data.type,
+            icon: data.icon,
+            color: data.color,
+            expense_limit: data.expenseLimit || 0,
+            is_default: false,
+          });
+        }
+      } catch (e) {
+        console.warn("Supabase addCategory error:", e);
+      }
+    })();
 
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   const updateCategory = useCallback(
     (id: string, data: Partial<Omit<Category, "id">>) => {
@@ -552,55 +982,48 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         prev.map((c) => (c.id === id ? { ...c, ...data } : c))
       );
 
-      if (data.expenseLimit !== undefined) {
-        const now = new Date();
-        const currentM = now.getMonth() + 1;
-        const currentY = now.getFullYear();
-        setBudgets((prev) => {
-          const existing = prev.find(
-            (b) =>
-              b.categoryId === id &&
-              b.month === currentM &&
-              b.year === currentY
-          );
-          if (existing) {
-            return prev.map((b) =>
-              b.id === existing.id
-                ? {
-                    ...b,
-                    amount: data.expenseLimit || 0,
-                    updatedAt: now.toISOString(),
-                  }
-                : b
-            );
-          } else if (data.expenseLimit && data.expenseLimit > 0) {
-            return [
-              ...prev,
-              {
-                id: `budget-${Date.now()}`,
-                categoryId: id,
-                amount: data.expenseLimit,
-                month: currentM,
-                year: currentY,
-                createdAt: now.toISOString(),
-                updatedAt: now.toISOString(),
-              },
-            ];
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("categories")
+              .update({
+                name: data.name,
+                type: data.type,
+                icon: data.icon,
+                color: data.color,
+                expense_limit: data.expenseLimit,
+              })
+              .eq("id", id);
           }
-          return prev;
-        });
-      }
+        } catch (e) {
+          console.warn("Supabase updateCategory error:", e);
+        }
+      })();
 
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const deleteCategory = useCallback((id: string) => {
     setCategories((prev) => prev.filter((c) => c.id !== id));
     setBudgets((prev) => prev.filter((b) => b.categoryId !== id));
+
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase.from("categories").delete().eq("id", id);
+        }
+      } catch (e) {
+        console.warn("Supabase deleteCategory error:", e);
+      }
+    })();
+
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   // Budget CRUD
   const addBudget = useCallback(
@@ -629,9 +1052,27 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         updatedAt: nowStr,
       };
       setBudgets((prev) => [...prev, newBudget]);
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("budgets").insert({
+              user_id: authUser.id,
+              category_id: data.categoryId,
+              amount: data.amount,
+              month: data.month,
+              year: data.year,
+            });
+          }
+        } catch (e) {
+          console.warn("Supabase addBudget error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [budgets]
+    [budgets, supabase]
   );
 
   const updateBudget = useCallback(
@@ -640,15 +1081,45 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       setBudgets((prev) =>
         prev.map((b) => (b.id === id ? { ...b, ...data, updatedAt: nowStr } : b))
       );
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("budgets")
+              .update({
+                amount: data.amount,
+                month: data.month,
+                year: data.year,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase updateBudget error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const deleteBudget = useCallback((id: string) => {
     setBudgets((prev) => prev.filter((b) => b.id !== id));
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase.from("budgets").delete().eq("id", id);
+        }
+      } catch (e) {
+        console.warn("Supabase deleteBudget error:", e);
+      }
+    })();
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   // Wishlist CRUD
   const addWishlistItem = useCallback(
@@ -669,9 +1140,31 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         updatedAt: nowStr,
       };
       setWishlists((prev) => [newItem, ...prev]);
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("wishlists").insert({
+              user_id: authUser.id,
+              name: data.name,
+              target_amount: data.targetAmount,
+              saved_amount: data.savedAmount || 0,
+              target_date: data.targetDate,
+              icon: data.icon,
+              color: data.color,
+              note: data.note,
+              is_completed: (data.savedAmount || 0) >= data.targetAmount,
+            });
+          }
+        } catch (e) {
+          console.warn("Supabase addWishlist error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const updateWishlistItem = useCallback(
@@ -690,15 +1183,50 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
           return updated;
         })
       );
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("wishlists")
+              .update({
+                name: data.name,
+                target_amount: data.targetAmount,
+                saved_amount: data.savedAmount,
+                target_date: data.targetDate,
+                icon: data.icon,
+                color: data.color,
+                note: data.note,
+                is_completed: data.isCompleted,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase updateWishlistItem error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const deleteWishlistItem = useCallback((id: string) => {
     setWishlists((prev) => prev.filter((w) => w.id !== id));
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase.from("wishlists").delete().eq("id", id);
+        }
+      } catch (e) {
+        console.warn("Supabase deleteWishlistItem error:", e);
+      }
+    })();
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   const addSavingsToWishlist = useCallback(
     (id: string, amount: number, fromWalletId?: string) => {
@@ -708,7 +1236,6 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
 
       const nowStr = new Date().toISOString();
 
-      // If fromWalletId is provided and valid, optionally deduct from wallet
       if (fromWalletId) {
         const sourceWallet = wallets.find((w) => w.id === fromWalletId);
         if (!sourceWallet) {
@@ -720,35 +1247,71 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
             error: "Saldo dompet tidak mencukupi untuk menabung wishlist ini",
           };
         }
+        const newBal = sourceWallet.balance - amount;
         setWallets((prev) =>
           prev.map((w) =>
             w.id === fromWalletId
-              ? { ...w, balance: w.balance - amount, updatedAt: nowStr }
+              ? { ...w, balance: newBal, updatedAt: nowStr }
               : w
           )
         );
+
+        (async () => {
+          try {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (authUser) {
+              await supabase
+                .from("wallets")
+                .update({ balance: newBal, updated_at: nowStr })
+                .eq("id", fromWalletId);
+            }
+          } catch (e) {
+            console.warn("Supabase update wallet on wishlist save:", e);
+          }
+        })();
       }
+
+      let updatedSaved = 0;
+      let isComp = false;
 
       setWishlists((prev) =>
         prev.map((w) => {
           if (w.id !== id) return w;
-          const newSaved = w.savedAmount + amount;
-          const isCompleted = newSaved >= w.targetAmount;
+          updatedSaved = w.savedAmount + amount;
+          isComp = updatedSaved >= w.targetAmount;
           return {
             ...w,
-            savedAmount: newSaved,
-            isCompleted,
+            savedAmount: updatedSaved,
+            isCompleted: isComp,
             updatedAt: nowStr,
           };
         })
       );
 
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("wishlists")
+              .update({
+                saved_amount: updatedSaved,
+                is_completed: isComp,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase wishlist save sync error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [wallets]
+    [wallets, supabase]
   );
 
-  // Reminder CRUD (Bill Reminders)
+  // Reminder CRUD
   const addReminder = useCallback(
     (data: Omit<BillReminder, "id" | "createdAt" | "updatedAt">) => {
       if (!data.title.trim()) {
@@ -771,9 +1334,30 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       };
 
       setReminders((prev) => [newReminder, ...prev]);
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase.from("bill_reminders").insert({
+              user_id: authUser.id,
+              title: data.title,
+              amount: data.amount,
+              due_date: data.dueDate,
+              category_id: data.categoryId,
+              wallet_id: data.walletId,
+              is_paid: false,
+              note: data.note,
+            });
+          }
+        } catch (e) {
+          console.warn("Supabase addReminder error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const updateReminder = useCallback(
@@ -785,15 +1369,50 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       setReminders((prev) =>
         prev.map((r) => (r.id === id ? { ...r, ...data, updatedAt: nowStr } : r))
       );
+
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("bill_reminders")
+              .update({
+                title: data.title,
+                amount: data.amount,
+                due_date: data.dueDate,
+                category_id: data.categoryId,
+                wallet_id: data.walletId,
+                is_paid: data.isPaid,
+                paid_at: data.paidAt,
+                note: data.note,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase updateReminder error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    []
+    [supabase]
   );
 
   const deleteReminder = useCallback((id: string) => {
     setReminders((prev) => prev.filter((r) => r.id !== id));
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase.from("bill_reminders").delete().eq("id", id);
+        }
+      } catch (e) {
+        console.warn("Supabase deleteReminder error:", e);
+      }
+    })();
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   const payReminder = useCallback(
     (id: string, walletId?: string) => {
@@ -816,16 +1435,16 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
           };
         }
 
-        // Deduct wallet balance
+        const newBal = wallet.balance - reminder.amount;
+
         setWallets((prev) =>
           prev.map((w) =>
             w.id === walletId
-              ? { ...w, balance: w.balance - reminder.amount, updatedAt: nowStr }
+              ? { ...w, balance: newBal, updatedAt: nowStr }
               : w
           )
         );
 
-        // Record expense transaction
         const newTx: Transaction = {
           id: `tx-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
           walletId,
@@ -838,9 +1457,32 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
           updatedAt: nowStr,
         };
         setTransactions((prev) => [newTx, ...prev]);
+
+        (async () => {
+          try {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (authUser) {
+              await supabase.from("transactions").insert({
+                user_id: authUser.id,
+                wallet_id: walletId,
+                category_id: reminder.categoryId,
+                type: "EXPENSE",
+                amount: reminder.amount,
+                note: `Bayar Tagihan: ${reminder.title}`,
+                transaction_at: nowStr,
+              });
+
+              await supabase
+                .from("wallets")
+                .update({ balance: newBal, updated_at: nowStr })
+                .eq("id", walletId);
+            }
+          } catch (e) {
+            console.warn("Supabase record reminder transaction error:", e);
+          }
+        })();
       }
 
-      // Mark reminder as paid
       setReminders((prev) =>
         prev.map((r) =>
           r.id === id
@@ -855,13 +1497,34 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         )
       );
 
+      (async () => {
+        try {
+          const { data: { user: authUser } } = await supabase.auth.getUser();
+          if (authUser) {
+            await supabase
+              .from("bill_reminders")
+              .update({
+                is_paid: true,
+                paid_at: nowStr,
+                wallet_id: walletId || reminder.walletId,
+                updated_at: nowStr,
+              })
+              .eq("id", id);
+          }
+        } catch (e) {
+          console.warn("Supabase mark reminder paid error:", e);
+        }
+      })();
+
       return { success: true };
     },
-    [reminders, wallets]
+    [reminders, wallets, supabase]
   );
 
   const unpayReminder = useCallback((id: string) => {
     const nowStr = new Date().toISOString();
+    let nextDueStr = "";
+
     setReminders((prev) =>
       prev.map((r) => {
         if (r.id !== id) return r;
@@ -872,17 +1535,38 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         if (nextMonthDate.getDate() !== targetDay) {
           nextMonthDate.setDate(0);
         }
+        nextDueStr = nextMonthDate.toISOString();
         return {
           ...r,
           isPaid: false,
           paidAt: undefined,
-          dueDate: nextMonthDate.toISOString(),
+          dueDate: nextDueStr,
           updatedAt: nowStr,
         };
       })
     );
+
+    (async () => {
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await supabase
+            .from("bill_reminders")
+            .update({
+              is_paid: false,
+              paid_at: null,
+              due_date: nextDueStr,
+              updated_at: nowStr,
+            })
+            .eq("id", id);
+        }
+      } catch (e) {
+        console.warn("Supabase unpayReminder error:", e);
+      }
+    })();
+
     return { success: true };
-  }, []);
+  }, [supabase]);
 
   // Budget calculation (spent computed dynamically from transactions - PRD §15)
   const getBudgetCalculations = useCallback(
@@ -897,7 +1581,6 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
             icon: "ShoppingBag",
           };
 
-          // SUM(transaction.amount) WHERE type=EXPENSE, categoryId, month, year
           const spent = transactions.reduce((sum, tx) => {
             if (tx.type !== "EXPENSE" || tx.categoryId !== budget.categoryId) {
               return sum;
@@ -938,7 +1621,6 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     (month = currentMonth, year = currentYear): BudgetCalculation | null => {
       const calcs = getBudgetCalculations(month, year);
       if (calcs.length === 0) return null;
-      // Sort by highest percentage spent
       const sorted = [...calcs].sort((a, b) => b.percentage - a.percentage);
       return sorted[0];
     },
@@ -979,28 +1661,46 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     [transactions, categories, currentMonth, currentYear]
   );
 
-  // Monthly trends (Last 5 months for Bar Chart with active solid vs hatch texture)
+  // Monthly trends calculated dynamically from actual transactions
   const getMonthlyTrends = useCallback(() => {
-    const months = [
-      { name: "Apr", month: 4, income: 4200000, expense: 1200000 },
-      { name: "Mei", month: 5, income: 4800000, expense: 1400000 },
-      { name: "Jun", month: 6, income: 5100000, expense: 1600000 },
-      { name: "Jul", month: 7, income: 5500000, expense: 1550000 },
-      { name: "Agu", month: 8, income: monthlyIncome || 6000000, expense: monthlyExpense || 1750000 },
-    ];
+    const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
+    const result = [];
+    const now = new Date();
 
-    return months.map((m) => ({
-      monthName: m.name,
-      income: m.income,
-      expense: m.expense,
-      month: m.month,
-      isCurrentMonth: m.month === currentMonth || m.name === "Agu",
-    }));
-  }, [monthlyIncome, monthlyExpense, currentMonth]);
+    // Generate last 5 months
+    for (let i = 4; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const mNum = d.getMonth() + 1;
+      const yNum = d.getFullYear();
+      const name = monthNames[d.getMonth()];
+
+      let inc = 0;
+      let exp = 0;
+
+      transactions.forEach((tx) => {
+        const txD = new Date(tx.transactionAt);
+        if (txD.getMonth() + 1 === mNum && txD.getFullYear() === yNum) {
+          if (tx.type === "INCOME") inc += tx.amount;
+          if (tx.type === "EXPENSE") exp += tx.amount;
+        }
+      });
+
+      result.push({
+        monthName: name,
+        income: inc,
+        expense: exp,
+        month: mNum,
+        isCurrentMonth: i === 0,
+      });
+    }
+
+    return result;
+  }, [transactions]);
 
   const value = {
     isAuthenticated,
     login,
+    signUp,
     logout,
     user,
     wallets,

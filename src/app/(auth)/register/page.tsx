@@ -6,16 +6,18 @@ import Link from "next/link";
 import { useFinora } from "@/context/finora-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Lock, Mail, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Lock, Mail, User, Eye, EyeOff, AlertCircle, CheckCircle2 } from "lucide-react";
 
-export default function LoginPage() {
+export default function RegisterPage() {
   const router = useRouter();
-  const { isAuthenticated, isHydrated, login } = useFinora();
+  const { isAuthenticated, isHydrated, signUp } = useFinora();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   useEffect(() => {
     if (isHydrated && isAuthenticated) {
@@ -27,14 +29,24 @@ export default function LoginPage() {
     e.preventDefault();
     setIsLoading(true);
     setErrorMsg(null);
+    setSuccessMsg(null);
 
-    const res = await login(email, password);
+    if (password.length < 6) {
+      setIsLoading(false);
+      setErrorMsg("Kata sandi minimal 6 karakter");
+      return;
+    }
+
+    const res = await signUp(email, password, name);
     setIsLoading(false);
 
     if (res.success) {
-      router.replace("/dashboard");
+      setSuccessMsg("Akun berhasil dibuat! Mengalihkan ke dashboard...");
+      setTimeout(() => {
+        router.replace("/dashboard");
+      }, 1000);
     } else {
-      setErrorMsg(res.error || "Gagal masuk. Periksa email dan password Anda.");
+      setErrorMsg(res.error || "Gagal mendaftar. Silakan coba lagi.");
     }
   };
 
@@ -51,10 +63,10 @@ export default function LoginPage() {
           </div>
           <div className="space-y-1">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white tracking-tight">
-              Masuk ke Finora
+              Buat Akun Finora
             </h1>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 max-w-xs mx-auto leading-relaxed">
-              Kelola dompet dan pantau arus kas Anda secara cerdas
+              Mulai atur keuangan pribadi Anda dengan rapi dan aman
             </p>
           </div>
         </div>
@@ -68,7 +80,32 @@ export default function LoginPage() {
             </div>
           )}
 
+          {successMsg && (
+            <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs flex items-center gap-2.5 font-medium">
+              <CheckCircle2 className="w-4 h-4 shrink-0" />
+              <span>{successMsg}</span>
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Field: Name */}
+            <div className="space-y-1.5">
+              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Nama Lengkap
+              </Label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="Nama Anda"
+                  className="w-full pl-11 pr-4 h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.04] dark:border-white/5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#6C4EF5] transition-all placeholder:text-zinc-400"
+                  required
+                />
+              </div>
+            </div>
+
             {/* Field: Email */}
             <div className="space-y-1.5">
               <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
@@ -89,18 +126,16 @@ export default function LoginPage() {
 
             {/* Field: Password */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
-                  Kata Sandi
-                </Label>
-              </div>
+              <Label className="text-xs font-bold text-zinc-700 dark:text-zinc-300">
+                Kata Sandi
+              </Label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder="Minimal 6 karakter"
                   className="w-full pl-11 pr-11 h-12 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-zinc-900 dark:text-white border border-black/[0.04] dark:border-white/5 text-xs sm:text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-[#6C4EF5] transition-all placeholder:text-zinc-400"
                   required
                 />
@@ -124,18 +159,18 @@ export default function LoginPage() {
               disabled={isLoading}
               className="w-full h-12 rounded-2xl bg-[#6C4EF5] hover:bg-[#5638D6] text-white font-bold text-sm shadow-lg shadow-violet-500/25 active:scale-[0.99] transition-all cursor-pointer flex items-center justify-center gap-2 mt-2"
             >
-              <span>{isLoading ? "Memproses..." : "Masuk ke Finora"}</span>
+              <span>{isLoading ? "Mendaftar..." : "Daftar Akun Baru"}</span>
             </Button>
           </form>
 
           <div className="text-center pt-2">
             <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Belum punya akun?{" "}
+              Sudah memiliki akun?{" "}
               <Link
-                href="/register"
+                href="/login"
                 className="font-bold text-[#6C4EF5] hover:underline"
               >
-                Daftar sekarang
+                Masuk di sini
               </Link>
             </p>
           </div>
