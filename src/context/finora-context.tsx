@@ -959,16 +959,20 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
         try {
           const { data: { user: authUser } } = await supabase.auth.getUser();
           if (authUser) {
-            await supabase
-              .from("categories")
-              .update({
-                name: data.name,
-                type: data.type,
-                icon: data.icon,
-                color: data.color,
-                expense_limit: data.expenseLimit,
-              })
-              .eq("id", id);
+            const updatePayload: Record<string, unknown> = {};
+            if (data.name !== undefined) updatePayload.name = data.name;
+            if (data.type !== undefined) updatePayload.type = data.type;
+            if (data.icon !== undefined) updatePayload.icon = data.icon;
+            if (data.color !== undefined) updatePayload.color = data.color;
+            if (data.expenseLimit !== undefined) updatePayload.expense_limit = data.expenseLimit;
+            else if ("expenseLimit" in data) updatePayload.expense_limit = 0;
+
+            if (Object.keys(updatePayload).length > 0) {
+              await supabase
+                .from("categories")
+                .update(updatePayload)
+                .eq("id", id);
+            }
           }
         } catch (e) {
           console.warn("Supabase updateCategory error:", e);
@@ -1004,20 +1008,45 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       if (data.amount <= 0) {
         return { success: false, error: "Batas budget harus lebih dari Rp 0" };
       }
-      const exists = budgets.find(
+      const existing = budgets.find(
         (b) =>
           b.categoryId === data.categoryId &&
           b.month === data.month &&
           b.year === data.year
       );
-      if (exists) {
-        return {
-          success: false,
-          error: "Budget untuk kategori dan bulan ini sudah dibuat",
-        };
-      }
 
       const nowStr = new Date().toISOString();
+
+      if (existing) {
+        // Update existing budget
+        setBudgets((prev) =>
+          prev.map((b) =>
+            b.id === existing.id
+              ? { ...b, amount: data.amount, updatedAt: nowStr }
+              : b
+          )
+        );
+
+        (async () => {
+          try {
+            const { data: { user: authUser } } = await supabase.auth.getUser();
+            if (authUser) {
+              await supabase
+                .from("budgets")
+                .update({
+                  amount: data.amount,
+                  updated_at: nowStr,
+                })
+                .eq("id", existing.id);
+            }
+          } catch (e) {
+            console.warn("Supabase updateBudget in addBudget error:", e);
+          }
+        })();
+
+        return { success: true };
+      }
+
       const newBudget: Budget = {
         ...data,
         id: `budget-${Date.now()}`,
