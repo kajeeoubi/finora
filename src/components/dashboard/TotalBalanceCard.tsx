@@ -15,33 +15,23 @@ export function TotalBalanceCard() {
   } = useFinora();
 
   return (
-    <div className="relative isolate overflow-hidden rounded-[32px] bg-[#121215] p-6 text-white shadow-2xl shadow-black/25 border border-white/[0.08] transition-all">
-      {/* Ambient background glow (strictly contained inside the card) */}
-      <div
-        className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[#6C4EF5]/25 blur-2xl pointer-events-none -z-10"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -left-10 -bottom-10 h-40 w-40 rounded-full bg-[#B6F23D]/15 blur-2xl pointer-events-none -z-10"
-        aria-hidden="true"
-      />
-
+    <div className="relative rounded-[32px] bg-gradient-to-br from-[#181822] via-[#121216] to-[#0D0D11] p-6 text-white shadow-2xl shadow-black/25 border border-white/[0.08] transition-all">
       {/* Top row */}
-      <div className="relative z-10 flex items-center justify-between">
+      <div className="flex items-center justify-between">
         <span className="text-sm font-semibold text-zinc-400 tracking-tight">
           Total Saldo
         </span>
       </div>
 
       {/* Balance Amount (Large bold typography) */}
-      <div className="relative z-10 my-3">
+      <div className="my-3">
         <h2 className="text-3xl sm:text-[40px] font-extrabold tracking-tight text-white tabular-nums leading-tight">
           {formatIDR(totalBalance)}
         </h2>
       </div>
 
       {/* Income & Expense Quick Badges using Arrow Icons only */}
-      <div className="relative z-10 flex items-center gap-3 py-2 border-t border-white/[0.08] text-xs">
+      <div className="flex items-center gap-3 py-2 border-t border-white/[0.08] text-xs">
         <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
           <ArrowUpRight className="h-3.5 w-3.5 text-[#4ADE80] stroke-[2.5]" />
           <span className="font-extrabold text-[#4ADE80] tabular-nums">
@@ -58,7 +48,7 @@ export function TotalBalanceCard() {
       </div>
 
       {/* Action Buttons Row */}
-      <div className="relative z-10 mt-4 flex items-center gap-2.5">
+      <div className="mt-4 flex items-center gap-2.5">
         {/* Violet Pill Transfer Button */}
         <button
           type="button"
