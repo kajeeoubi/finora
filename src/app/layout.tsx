@@ -11,9 +11,8 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "Finora — Aplikasi Manajemen Keuangan & Arus Kas Pribadi",
-  description:
-    "Pantau saldo dompet, catat pengeluaran & pemasukan, transfer antar dompet, dan kendalikan anggaran bulanan Anda dengan mudah.",
+  title: "Finora — Manajemen Keuangan",
+  description: "Kelola saldo dompet, catat transaksi, dan pantau anggaran dengan mudah.",
 };
 
 import { TooltipProvider } from "@/components/ui/tooltip";
