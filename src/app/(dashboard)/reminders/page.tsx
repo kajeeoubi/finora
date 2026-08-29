@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR, formatDateIndo } from "@/lib/formatters";
 import { CategoryIcon } from "@/components/shared/CategoryIcon";

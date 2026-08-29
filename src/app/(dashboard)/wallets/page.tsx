@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR, formatDateIndo } from "@/lib/formatters";
 import {

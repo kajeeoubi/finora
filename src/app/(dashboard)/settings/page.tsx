@@ -7,9 +7,6 @@ import { useFinora } from "@/context/finora-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import {
-  User,
-  RotateCcw,
-  Globe,
   Check,
   Moon,
   Sun,
@@ -22,14 +19,12 @@ export default function SettingsPage() {
     user,
     categories,
     updateUser,
-    resetToDefaultData,
     logout,
   } = useFinora();
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [isSaved, setIsSaved] = useState(false);
-  const [isResetDone, setIsResetDone] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
@@ -69,18 +64,6 @@ export default function SettingsPage() {
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
-  };
-
-  const handleReset = () => {
-    if (
-      window.confirm(
-        "Apakah Anda yakin ingin mengembalikan seluruh data ke nilai awal bawaan?"
-      )
-    ) {
-      resetToDefaultData();
-      setIsResetDone(true);
-      setTimeout(() => setIsResetDone(false), 2500);
-    }
   };
 
   return (
@@ -224,25 +207,8 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      {/* Reset Data Bawaan & Keluar */}
-      <div className="rounded-[28px] border border-amber-200 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/25 p-6 space-y-3 transition-colors animate-card-enter stagger-3">
-        <div className="text-amber-800 dark:text-amber-300 font-extrabold text-sm">
-          Reset Data Bawaan
-        </div>
-        <p className="text-xs text-amber-800/80 dark:text-amber-300/80 leading-relaxed">
-          Kembalikan seluruh data transaksi, saldo dompet, dan batas anggaran ke nilai awal bawaan.
-        </p>
-        <Button
-          onClick={handleReset}
-          variant="outline"
-          className="h-11 rounded-2xl border-amber-300 bg-white text-amber-800 hover:bg-amber-100 text-xs font-bold dark:bg-amber-900/80 dark:text-white dark:border-amber-700/80 cursor-pointer"
-        >
-          {isResetDone ? "Data Telah Direset" : "Reset ke Data Awal"}
-        </Button>
-      </div>
-
       {/* Tombol Keluar Akun */}
-      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span className="text-sm font-bold text-zinc-900 dark:text-white block">
             Keluar dari Finora

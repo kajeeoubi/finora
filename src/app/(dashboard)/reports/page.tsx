@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import { IncomeAnalysisCard } from "@/components/reports/IncomeAnalysisCard";
 import { ExpenseCategoryDonut } from "@/components/reports/ExpenseCategoryDonut";
 import { useFinora } from "@/context/finora-context";

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { useFinora } from "@/context/finora-context";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -127,18 +126,6 @@ export default function LoginPage() {
               <span>{isLoading ? "Memproses..." : "Masuk ke Finora"}</span>
             </Button>
           </form>
-
-          <div className="text-center pt-2">
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
-              Belum punya akun?{" "}
-              <Link
-                href="/register"
-                className="font-bold text-[#6C4EF5] hover:underline"
-              >
-                Daftar sekarang
-              </Link>
-            </p>
-          </div>
         </div>
       </div>
     </div>

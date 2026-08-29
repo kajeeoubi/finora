@@ -9,9 +9,7 @@ import {
   Bell,
   Moon,
   Sun,
-  RotateCcw,
 } from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useFinora } from "@/context/finora-context";
 import {
   DropdownMenu,
@@ -34,7 +32,7 @@ interface AppHeaderProps {
 
 export function AppHeader({ title, subtitle }: AppHeaderProps) {
   const pathname = usePathname();
-  const { user, resetToDefaultData } = useFinora();
+  const { user } = useFinora();
   const [hasNotifications, setHasNotifications] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -300,14 +298,6 @@ export function AppHeader({ title, subtitle }: AppHeaderProps) {
                 <Link href="/settings" className="cursor-pointer font-medium">
                   Pengaturan
                 </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={resetToDefaultData}
-                className="text-amber-600 dark:text-amber-400 focus:text-amber-700 cursor-pointer flex items-center gap-2 font-medium"
-              >
-                <RotateCcw className="h-3.5 w-3.5" />
-                <span>Reset Data Demo PRD</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

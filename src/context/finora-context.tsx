@@ -81,8 +81,6 @@ interface FinoraContextType {
   getExpenseByCategory: (month?: number, year?: number) => { category: Category; amount: number; percentage: number }[];
   getMonthlyTrends: () => { monthName: string; income: number; expense: number; month: number; isCurrentMonth: boolean }[];
 
-  resetToDefaultData: () => void;
-
   // Hydration state
   isHydrated: boolean;
 
@@ -488,31 +486,6 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       console.warn("Could not cache Finora data:", e);
     }
   }, [isHydrated, user, wallets, categories, transactions, transfers, budgets, wishlists, reminders]);
-
-  // Reset to empty data
-  const resetToDefaultData = useCallback(() => {
-    setUser(EMPTY_USER);
-    setWallets([]);
-    setCategories([]);
-    setTransactions([]);
-    setTransfers([]);
-    setBudgets([]);
-    setWishlists([]);
-    setReminders([]);
-
-    try {
-      localStorage.removeItem(STORAGE_KEYS.USER);
-      localStorage.removeItem(STORAGE_KEYS.WALLETS);
-      localStorage.removeItem(STORAGE_KEYS.CATEGORIES);
-      localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
-      localStorage.removeItem(STORAGE_KEYS.TRANSFERS);
-      localStorage.removeItem(STORAGE_KEYS.BUDGETS);
-      localStorage.removeItem(STORAGE_KEYS.WISHLISTS);
-      localStorage.removeItem(STORAGE_KEYS.REMINDERS);
-    } catch (e) {
-      console.warn("Error resetting storage:", e);
-    }
-  }, []);
 
   const updateUser = useCallback((data: Partial<UserProfile>) => {
     setUser((prev) => ({ ...prev, ...data }));
@@ -1740,7 +1713,6 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     getTopBudgetNearLimit,
     getExpenseByCategory,
     getMonthlyTrends,
-    resetToDefaultData,
     isHydrated,
     isTransferModalOpen,
     setIsTransferModalOpen,

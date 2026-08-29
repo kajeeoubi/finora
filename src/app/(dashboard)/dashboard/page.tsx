@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { TotalBalanceCard } from "@/components/dashboard/TotalBalanceCard";
 import { BudgetOverviewCard } from "@/components/dashboard/BudgetOverviewCard";
 import { RecentTransactionsCard } from "@/components/dashboard/RecentTransactionsCard";
