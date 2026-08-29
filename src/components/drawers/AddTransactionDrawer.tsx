@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Drawer,
   DrawerContent,
@@ -41,20 +41,22 @@ export function AddTransactionDrawer() {
 
   const filteredCategories = categories.filter((c) => c.type === type);
 
-  React.useEffect(() => {
-    if (filteredCategories.length > 0 && !categoryId) {
-      setCategoryId(filteredCategories[0].id);
+  // Inisialisasi default category dan wallet saat modal dibuka / data tersedia
+  useEffect(() => {
+    if (isAddTransactionModalOpen) {
+      if (filteredCategories.length > 0 && (!categoryId || !filteredCategories.some(c => c.id === categoryId))) {
+        setCategoryId(filteredCategories[0].id);
+      }
+      if (wallets.length > 0 && (!walletId || !wallets.some(w => w.id === walletId))) {
+        setWalletId(wallets[0].id);
+      }
+      setErrorMsg("");
+      setIsSuccess(false);
     }
-  }, [filteredCategories, categoryId]);
-
-  React.useEffect(() => {
-    if (wallets.length > 0 && !walletId) {
-      setWalletId(wallets[0].id);
-    }
-  }, [wallets, walletId]);
+  }, [isAddTransactionModalOpen, type]);
 
   const selectedWallet = wallets.find((w) => w.id === walletId) || wallets[0];
-  const selectedCategory = categories.find((c) => c.id === categoryId);
+  const selectedCategory = categories.find((c) => c.id === categoryId) || filteredCategories[0];
 
   const handleTypeChange = (newType: TransactionType) => {
     setType(newType);
@@ -75,28 +77,31 @@ export function AddTransactionDrawer() {
       return;
     }
 
-    if (!categoryId) {
+    const activeCatId = categoryId || selectedCategory?.id;
+    if (!activeCatId) {
       setErrorMsg("Pilih kategori transaksi");
       return;
     }
 
-    if (!walletId) {
+    const activeWalletId = walletId || selectedWallet?.id;
+    if (!activeWalletId) {
       setErrorMsg("Pilih dompet sumber / tujuan");
       return;
     }
 
-    if (type === "EXPENSE" && selectedWallet && selectedWallet.balance < numericAmount) {
+    const targetWallet = wallets.find(w => w.id === activeWalletId) || selectedWallet;
+    if (type === "EXPENSE" && targetWallet && targetWallet.balance < numericAmount) {
       setErrorMsg(
-        `Saldo ${selectedWallet.name} tidak mencukupi (${formatIDR(
-          selectedWallet.balance
+        `Saldo ${targetWallet.name} tidak mencukupi (${formatIDR(
+          targetWallet.balance
         )})`
       );
       return;
     }
 
     const result = addTransaction({
-      walletId,
-      categoryId,
+      walletId: activeWalletId,
+      categoryId: activeCatId,
       type,
       amount: numericAmount,
       note: note.trim() || undefined,
@@ -134,9 +139,9 @@ export function AddTransactionDrawer() {
               <Check className="h-8 w-8" />
             </div>
             <h4 className="text-lg font-bold text-zinc-900 dark:text-white">
-              Transaksi Tersimpan!
+              Transaksi Berhasil Dicatat!
             </h4>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <p className="text-xs text-muted-foreground">
               Saldo dompet Anda telah diperbarui seketika.
             </p>
           </div>
@@ -236,15 +241,15 @@ export function AddTransactionDrawer() {
                   className="w-[var(--radix-dropdown-menu-trigger-width)] max-h-60 overflow-y-auto p-1.5"
                 >
                   {filteredCategories.map((cat) => {
-                    const isSelected = categoryId === cat.id;
+                    const isSelected = (categoryId || selectedCategory?.id) === cat.id;
                     return (
                       <DropdownMenuItem
                         key={cat.id}
-                        onClick={() => {
+                        onSelect={() => {
                           setCategoryId(cat.id);
                           setErrorMsg("");
                         }}
-                        className="flex items-center justify-between py-2 cursor-pointer"
+                        className="flex items-center justify-between py-2 cursor-pointer font-bold"
                       >
                         <div className="flex items-center gap-2.5">
                           <CategoryIcon
@@ -263,7 +268,7 @@ export function AddTransactionDrawer() {
               </DropdownMenu>
             </div>
 
-            {/* Styled Wallet Selector Dropdown (Matching trigger width) */}
+            {/* Styled Wallet Selector Dropdown */}
             <div className="space-y-1.5">
               <Label className="text-xs text-zinc-600 dark:text-zinc-300 font-bold uppercase tracking-wider">
                 {type === "EXPENSE" ? "Bayar Menggunakan" : "Simpan ke Dompet"}
@@ -280,17 +285,17 @@ export function AddTransactionDrawer() {
                   {wallets.map((w) => (
                     <DropdownMenuItem
                       key={w.id}
-                      onClick={() => {
+                      onSelect={() => {
                         setWalletId(w.id);
                         setErrorMsg("");
                       }}
-                      className="flex items-center justify-between"
+                      className="flex items-center justify-between py-2 cursor-pointer font-bold"
                     >
                       <div>
-                        <span className="font-bold block">{w.name}</span>
+                        <span className="font-bold block text-sm">{w.name}</span>
                         <span className="text-[11px] text-muted-foreground">Saldo {formatIDR(w.balance)}</span>
                       </div>
-                      {w.id === walletId && <Check className="h-4 w-4 text-[#6C4EF5]" />}
+                      {(walletId || selectedWallet?.id) === w.id && <Check className="h-4 w-4 text-[#6C4EF5]" />}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuContent>

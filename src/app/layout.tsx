@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { FinoraProvider } from "@/context/finora-context";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -15,7 +16,19 @@ export const metadata: Metadata = {
   description: "Kelola saldo dompet, catat transaksi, dan pantau anggaran dengan mudah.",
 };
 
-import { TooltipProvider } from "@/components/ui/tooltip";
+const themeScript = `
+  (function() {
+    try {
+      var saved = localStorage.getItem('finora_theme');
+      var isDark = saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      if (isDark) {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+    } catch (e) {}
+  })();
+`;
 
 export default function RootLayout({
   children,
@@ -23,7 +36,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" className={`${plusJakartaSans.variable} h-full antialiased`}>
+    <html lang="id" suppressHydrationWarning className={`${plusJakartaSans.variable} h-full antialiased`}>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body className={`${plusJakartaSans.className} min-h-full flex flex-col font-sans bg-[#F5F5F7] text-[#111115] dark:bg-[#0B0B0E] dark:text-white transition-colors`}>
         <TooltipProvider delayDuration={150}>
           <FinoraProvider>{children}</FinoraProvider>

@@ -34,16 +34,25 @@ export default function SettingsPage() {
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      setIsDarkMode(document.documentElement.classList.contains("dark"));
+      const savedTheme = localStorage.getItem("finora_theme");
+      if (savedTheme === "dark" || (!savedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
+        setIsDarkMode(true);
+        document.documentElement.classList.add("dark");
+      } else {
+        setIsDarkMode(false);
+        document.documentElement.classList.remove("dark");
+      }
     }
   }, []);
 
   const toggleTheme = () => {
     if (document.documentElement.classList.contains("dark")) {
       document.documentElement.classList.remove("dark");
+      localStorage.setItem("finora_theme", "light");
       setIsDarkMode(false);
     } else {
       document.documentElement.classList.add("dark");
+      localStorage.setItem("finora_theme", "dark");
       setIsDarkMode(true);
     }
   };
