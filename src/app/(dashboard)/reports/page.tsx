@@ -494,7 +494,7 @@ export default function ReportsPage() {
                   Dompet
                 </th>
                 <th className="py-2 px-3 border-r border-zinc-200">
-                  Keterangan / Catatan
+                  Catatan
                 </th>
                 <th className="py-2 px-2.5 text-center border-r border-zinc-200 whitespace-nowrap">
                   Jenis
@@ -509,7 +509,7 @@ export default function ReportsPage() {
                 <tr>
                   <td
                     colSpan={7}
-                    className="py-6 text-center text-zinc-500 italic bg-zinc-50 text-[10px]"
+                    className="py-6 text-center text-zinc-500 bg-zinc-50 text-[10px]"
                   >
                     Tidak ada catatan transaksi pada periode {currentPeriodLabel}.
                   </td>

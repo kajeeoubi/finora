@@ -12,8 +12,8 @@ import {
   Sun,
   LogOut,
   Trash2,
-  AlertTriangle,
   Loader2,
+  FileSpreadsheet,
 } from "lucide-react";
 import {
   Dialog,
@@ -24,12 +24,19 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ExportImportDrawer } from "@/components/drawers/ExportImportDrawer";
 
 export default function SettingsPage() {
   const router = useRouter();
   const {
     user,
+    wallets,
     categories,
+    transactions,
+    transfers,
+    budgets,
+    wishlists,
+    reminders,
     updateUser,
     logout,
     resetUserData,
@@ -40,6 +47,7 @@ export default function SettingsPage() {
   const [isSaved, setIsSaved] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isExportImportModalOpen, setIsExportImportModalOpen] = useState(false);
   const [isResetting, setIsResetting] = useState(false);
   const [resetSuccess, setResetSuccess] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
@@ -249,8 +257,63 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Export & Import Data Excel */}
+      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-6 shadow-sm space-y-4 transition-colors animate-card-enter stagger-3">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="h-12 w-12 rounded-2xl bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+              <FileSpreadsheet className="h-6 w-6" />
+            </div>
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+                  Export & Import Data
+                </h3>
+                <span className="px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold">
+                  Format Excel (.xlsx)
+                </span>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                Cadangkan seluruh data kategori, transaksi, kartu/dompet, anggaran, impian, dan pengingat, atau pulihkan data dari file Excel
+              </p>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            onClick={() => setIsExportImportModalOpen(true)}
+            className="h-11 rounded-2xl bg-[#6C4EF5] hover:bg-[#5638D6] text-white text-xs font-bold px-5 shadow-md shadow-violet-500/20 gap-2 cursor-pointer shrink-0"
+          >
+            <FileSpreadsheet className="h-4 w-4" />
+            <span>Kelola Data (Excel)</span>
+          </Button>
+        </div>
+
+        {/* Ringkasan status data */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-black/[0.04] dark:border-white/[0.06] text-center">
+          <div className="p-2.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028]">
+            <span className="text-[10px] font-semibold text-zinc-500 block">Dompet/Kartu</span>
+            <span className="text-xs font-extrabold text-zinc-900 dark:text-white">{wallets.length} Akun</span>
+          </div>
+          <div className="p-2.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028]">
+            <span className="text-[10px] font-semibold text-zinc-500 block">Kategori</span>
+            <span className="text-xs font-extrabold text-zinc-900 dark:text-white">{categories.length} Kategori</span>
+          </div>
+          <div className="p-2.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028]">
+            <span className="text-[10px] font-semibold text-zinc-500 block">Transaksi</span>
+            <span className="text-xs font-extrabold text-zinc-900 dark:text-white">{transactions.length} Transaksi</span>
+          </div>
+          <div className="p-2.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028]">
+            <span className="text-[10px] font-semibold text-zinc-500 block">Total Item Data</span>
+            <span className="text-xs font-extrabold text-violet-600 dark:text-violet-400">
+              {wallets.length + categories.length + transactions.length + transfers.length + budgets.length + wishlists.length + reminders.length} Total
+            </span>
+          </div>
+        </div>
+      </div>
+
       {/* Reset Data */}
-      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span className="text-sm font-bold text-zinc-900 dark:text-white block">
             Reset Data
@@ -346,6 +409,12 @@ export default function SettingsPage() {
           <span>Keluar Akun</span>
         </Button>
       </div>
+
+      {/* Drawer Export & Import Data Excel */}
+      <ExportImportDrawer
+        open={isExportImportModalOpen}
+        onOpenChange={setIsExportImportModalOpen}
+      />
     </div>
   );
 }
