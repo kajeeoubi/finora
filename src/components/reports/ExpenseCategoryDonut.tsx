@@ -1,16 +1,21 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useFinora } from "@/context/finora-context";
 import { formatIDR } from "@/lib/formatters";
 import { cn } from "@/lib/utils";
+import { Transaction } from "@/types";
 
 interface ExpenseCategoryDonutProps {
   period?: string;
+  filteredTransactions?: Transaction[];
 }
 
-export function ExpenseCategoryDonut({ period = "Bulanan" }: ExpenseCategoryDonutProps) {
-  const { monthlyExpense, getExpenseByCategory } = useFinora();
+export function ExpenseCategoryDonut({
+  period = "Bulanan",
+  filteredTransactions,
+}: ExpenseCategoryDonutProps) {
+  const { categories, transactions: allTransactions, getExpenseByCategory } = useFinora();
   const [hoveredCategoryId, setHoveredCategoryId] = useState<string | null>(null);
   const [isAnimated, setIsAnimated] = useState(false);
 
@@ -20,8 +25,40 @@ export function ExpenseCategoryDonut({ period = "Bulanan" }: ExpenseCategoryDonu
     return () => clearTimeout(timer);
   }, [period]);
 
-  const expenseData = getExpenseByCategory();
-  const totalExpense = expenseData.reduce((sum, item) => sum + item.amount, 0) || monthlyExpense;
+  const expenseData = useMemo(() => {
+    if (!filteredTransactions) {
+      return getExpenseByCategory();
+    }
+
+    const categoryMap: { [catId: string]: number } = {};
+    let totalExp = 0;
+
+    filteredTransactions.forEach((tx) => {
+      if (tx.type !== "EXPENSE") return;
+      categoryMap[tx.categoryId] = (categoryMap[tx.categoryId] || 0) + tx.amount;
+      totalExp += tx.amount;
+    });
+
+    return Object.entries(categoryMap).map(([catId, amount]) => {
+      const cat = categories.find((c) => c.id === catId) || {
+        id: catId,
+        name: "Lainnya",
+        type: "EXPENSE" as const,
+        icon: "Package",
+        color: "#64748B",
+      };
+      const percentage = totalExp > 0 ? Math.round((amount / totalExp) * 100) : 0;
+      return {
+        category: cat,
+        amount,
+        percentage,
+      };
+    });
+  }, [filteredTransactions, categories, getExpenseByCategory]);
+
+  const totalExpense = useMemo(() => {
+    return expenseData.reduce((sum, item) => sum + item.amount, 0);
+  }, [expenseData]);
 
   const SEGMENT_COLORS = [
     "#6C4EF5", // violet-600

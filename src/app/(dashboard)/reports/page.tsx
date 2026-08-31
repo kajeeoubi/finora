@@ -178,38 +178,25 @@ export default function ReportsPage() {
       );
   }, [transactions, period, selectedMonth, selectedYear, weekOffset]);
 
-  // Kalkulasi estimasi arus kas berdasarkan periode
-  let incomeMultiplier = 1;
-  let expenseMultiplier = 1;
+  // Kalkulasi total arus kas berdasarkan transaksi terfilter periode ini
+  const currentIncome = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.type === "INCOME")
+      .reduce((acc, t) => acc + t.amount, 0);
+  }, [filteredTransactions]);
 
-  if (period === "Mingguan") {
-    incomeMultiplier = 1 / 4;
-    expenseMultiplier = 1 / 4;
-  } else if (period === "Tahunan") {
-    incomeMultiplier = 12;
-    expenseMultiplier = 12;
-  }
+  const currentExpense = useMemo(() => {
+    return filteredTransactions
+      .filter((t) => t.type === "EXPENSE")
+      .reduce((acc, t) => acc + t.amount, 0);
+  }, [filteredTransactions]);
 
-  const currentIncome = Math.round(monthlyIncome * incomeMultiplier);
-  const currentExpense = Math.round(monthlyExpense * expenseMultiplier);
   const netSavings = currentIncome - currentExpense;
 
   // Total angka untuk tabel cetak PDF
-  const totalPrintIncome = useMemo(() => {
-    const sum = filteredTransactions
-      .filter((t) => t.type === "INCOME")
-      .reduce((acc, t) => acc + t.amount, 0);
-    return sum > 0 ? sum : currentIncome;
-  }, [filteredTransactions, currentIncome]);
-
-  const totalPrintExpense = useMemo(() => {
-    const sum = filteredTransactions
-      .filter((t) => t.type === "EXPENSE")
-      .reduce((acc, t) => acc + t.amount, 0);
-    return sum > 0 ? sum : currentExpense;
-  }, [filteredTransactions, currentExpense]);
-
-  const totalPrintNet = totalPrintIncome - totalPrintExpense;
+  const totalPrintIncome = currentIncome;
+  const totalPrintExpense = currentExpense;
+  const totalPrintNet = netSavings;
 
   // Export PDF Handler (Membuka dialog print yang otomatis merender format tabel laporan)
   const handleExportPDF = () => {
@@ -415,7 +402,10 @@ export default function ReportsPage() {
 
         {/* Kartu Kategori Pengeluaran */}
         <div className="animate-card-enter stagger-4">
-          <ExpenseCategoryDonut period={currentPeriodLabel} />
+          <ExpenseCategoryDonut
+            period={currentPeriodLabel}
+            filteredTransactions={filteredTransactions}
+          />
         </div>
       </div>
 

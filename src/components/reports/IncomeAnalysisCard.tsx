@@ -28,12 +28,27 @@ export function IncomeAnalysisCard({
   selectedYear = new Date().getFullYear(),
   weekOffset = 0,
 }: IncomeAnalysisCardProps) {
-  const { transactions, monthlyIncome, getMonthlyTrends } = useFinora();
+  const { transactions } = useFinora();
   const [activeIdx, setActiveIdx] = useState<number>(0);
   const [isAnimated, setIsAnimated] = useState(false);
 
-  // Generate chart data based on active periodType
+  // Generate chart data based on active periodType and actual transactions
   const chartData = useMemo<BarItem[]>(() => {
+    const monthShortNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ];
+
     if (periodType === "Mingguan") {
       // 7 days of the week: Senin - Minggu
       const dayNames = [
@@ -46,28 +61,38 @@ export function IncomeAnalysisCard({
         { label: "Min", fullName: "Minggu" },
       ];
 
-      // Calculate base weekly income
-      const weekBase = Math.round(monthlyIncome / 4);
-      // Realistic weekday distribution weights
-      const weekdayWeights = [0.1, 0.15, 0.25, 0.1, 0.35, 0.05, 0.0];
+      const nowDate = new Date();
+      const startOfWeek = new Date(nowDate);
+      const day = nowDate.getDay();
+      const diff =
+        nowDate.getDate() - day + (day === 0 ? -6 : 1) + weekOffset * 7;
+      startOfWeek.setDate(diff);
+      startOfWeek.setHours(0, 0, 0, 0);
 
       return dayNames.map((d, i) => {
-        // Find matching transactions if any
+        const targetDate = new Date(startOfWeek);
+        targetDate.setDate(startOfWeek.getDate() + i);
+
+        const y = targetDate.getFullYear();
+        const m = targetDate.getMonth();
+        const dateNum = targetDate.getDate();
+
         const dayTxs = transactions.filter((tx) => {
           if (tx.type !== "INCOME") return false;
           const dt = new Date(tx.transactionAt);
-          // Convert JS getDay (0=Sun, 1=Mon, ..., 6=Sat) to index (0=Mon, ..., 6=Sun)
-          const dayIdx = dt.getDay() === 0 ? 6 : dt.getDay() - 1;
-          return dayIdx === i;
+          return (
+            dt.getFullYear() === y &&
+            dt.getMonth() === m &&
+            dt.getDate() === dateNum
+          );
         });
 
-        const txSum = dayTxs.reduce((sum, t) => sum + t.amount, 0);
-        const income = txSum > 0 ? txSum : Math.round(weekBase * weekdayWeights[i]);
+        const income = dayTxs.reduce((sum, t) => sum + t.amount, 0);
 
         return {
-          key: `day-${i}`,
+          key: `day-${i}-${y}-${m}-${dateNum}`,
           label: d.label,
-          fullName: d.fullName,
+          fullName: `${d.fullName}, ${dateNum} ${monthShortNames[m]}`,
           income,
         };
       });
@@ -75,20 +100,6 @@ export function IncomeAnalysisCard({
 
     if (periodType === "Tahunan") {
       // 12 months: Januari - Desember
-      const monthShortNames = [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "Mei",
-        "Jun",
-        "Jul",
-        "Agu",
-        "Sep",
-        "Okt",
-        "Nov",
-        "Des",
-      ];
       const monthFullNames = [
         "Januari",
         "Februari",
@@ -106,7 +117,6 @@ export function IncomeAnalysisCard({
 
       const currentRealMonth = new Date().getMonth();
       const currentRealYear = new Date().getFullYear();
-      const trends = getMonthlyTrends();
 
       return monthShortNames.map((shortName, mIdx) => {
         const isFuture =
@@ -129,16 +139,7 @@ export function IncomeAnalysisCard({
           return dt.getFullYear() === selectedYear && dt.getMonth() === mIdx;
         });
 
-        const txSum = monthTxs.reduce((sum, t) => sum + t.amount, 0);
-
-        // Fallback to trends profile if transactions for past months are seed
-        const trendMatch = trends.find((t) => t.month === mIdx + 1);
-        const income =
-          txSum > 0
-            ? txSum
-            : trendMatch
-            ? trendMatch.income
-            : Math.round(monthlyIncome * (0.85 + (mIdx % 3) * 0.1));
+        const income = monthTxs.reduce((sum, t) => sum + t.amount, 0);
 
         return {
           key: `month-${mIdx}`,
@@ -154,7 +155,7 @@ export function IncomeAnalysisCard({
       { label: "Mgg 1", fullName: "Minggu 1 (Tgl 1 - 7)" },
       { label: "Mgg 2", fullName: "Minggu 2 (Tgl 8 - 14)" },
       { label: "Mgg 3", fullName: "Minggu 3 (Tgl 15 - 21)" },
-      { label: "Mgg 4", fullName: "Minggu 4 (Tgl 22 - 31)" },
+      { label: "Mgg 4", fullName: "Minggu 4 (Tgl 22 - Selesai)" },
     ];
 
     // Filter transactions for selected month & year
@@ -163,9 +164,6 @@ export function IncomeAnalysisCard({
       const dt = new Date(tx.transactionAt);
       return dt.getFullYear() === selectedYear && dt.getMonth() === selectedMonth;
     });
-
-    // Week distribution weights (e.g. Salary in W1, Freelance in W2 & W3)
-    const weekWeights = [0.65, 0.15, 0.15, 0.05];
 
     return weekLabels.map((w, wIdx) => {
       const weekTxs = monthIncomeTxs.filter((tx) => {
@@ -176,9 +174,7 @@ export function IncomeAnalysisCard({
         return date >= 22;
       });
 
-      const txSum = weekTxs.reduce((sum, t) => sum + t.amount, 0);
-      const income =
-        txSum > 0 ? txSum : Math.round(monthlyIncome * weekWeights[wIdx]);
+      const income = weekTxs.reduce((sum, t) => sum + t.amount, 0);
 
       return {
         key: `week-${wIdx}`,
@@ -187,48 +183,55 @@ export function IncomeAnalysisCard({
         income,
       };
     });
-  }, [
-    periodType,
-    selectedMonth,
-    selectedYear,
-    weekOffset,
-    monthlyIncome,
-    transactions,
-    getMonthlyTrends,
-  ]);
+  }, [periodType, selectedMonth, selectedYear, weekOffset, transactions]);
 
   // Set default active index when chart data changes
   useEffect(() => {
-    // Select the highest or latest bar by default
     if (periodType === "Tahunan") {
       const currentRealMonth = new Date().getMonth();
-      setActiveIdx(Math.min(currentRealMonth, selectedMonth));
+      const currentRealYear = new Date().getFullYear();
+      if (selectedYear === currentRealYear) {
+        setActiveIdx(currentRealMonth);
+      } else {
+        const maxIdx = chartData.reduce(
+          (maxI, item, i, arr) => (item.income > arr[maxI].income ? i : maxI),
+          0
+        );
+        setActiveIdx(maxIdx);
+      }
     } else if (periodType === "Mingguan") {
-      // Default to Wednesday or Friday (highest)
-      setActiveIdx(4);
+      if (weekOffset === 0) {
+        const nowDate = new Date();
+        const jsDay = nowDate.getDay();
+        const dayIdx = jsDay === 0 ? 6 : jsDay - 1;
+        setActiveIdx(dayIdx);
+      } else {
+        const maxIdx = chartData.reduce(
+          (maxI, item, i, arr) => (item.income > arr[maxI].income ? i : maxI),
+          0
+        );
+        setActiveIdx(maxIdx);
+      }
     } else {
-      // Default to Week 1 (Gaji)
-      setActiveIdx(0);
+      const maxIdx = chartData.reduce(
+        (maxI, item, i, arr) => (item.income > arr[maxI].income ? i : maxI),
+        0
+      );
+      setActiveIdx(maxIdx);
     }
 
     setIsAnimated(false);
     const timer = setTimeout(() => setIsAnimated(true), 60);
     return () => clearTimeout(timer);
-  }, [periodType, selectedMonth, selectedYear, weekOffset]);
-
-  const activeItem = chartData[activeIdx] || chartData[0] || {
-    label: "",
-    fullName: "",
-    income: 0,
-  };
+  }, [periodType, selectedMonth, selectedYear, weekOffset, chartData]);
 
   const totalPeriodIncome = useMemo(() => {
     return chartData.reduce((sum, item) => sum + item.income, 0);
   }, [chartData]);
 
   const maxIncome = useMemo(() => {
-    const highest = Math.max(...chartData.map((d) => d.income), 1000000);
-    return highest > 0 ? highest : 1000000;
+    const highest = Math.max(...chartData.map((d) => d.income), 0);
+    return highest > 0 ? highest : 100000;
   }, [chartData]);
 
   return (
