@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
 import { Category } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -10,6 +10,8 @@ interface UseCategoriesOptions {
 
 export function useCategories(supabase: SupabaseClient, options?: UseCategoriesOptions) {
   const [categories, setCategories] = useState<Category[]>([]);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   const addCategory = useCallback(
     (data: Omit<Category, "id">) => {
@@ -90,8 +92,8 @@ export function useCategories(supabase: SupabaseClient, options?: UseCategoriesO
   const deleteCategory = useCallback(
     (id: string) => {
       setCategories((prev) => prev.filter((c) => c.id !== id));
-      if (options?.onDeleteCategory) {
-        options.onDeleteCategory(id);
+      if (optionsRef.current?.onDeleteCategory) {
+        optionsRef.current.onDeleteCategory(id);
       }
 
       (async () => {
@@ -109,7 +111,7 @@ export function useCategories(supabase: SupabaseClient, options?: UseCategoriesO
 
       return { success: true };
     },
-    [supabase, options]
+    [supabase]
   );
 
   return {

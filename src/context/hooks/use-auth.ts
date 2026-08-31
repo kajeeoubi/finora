@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { UserProfile } from "@/types";
 import { SupabaseClient } from "@supabase/supabase-js";
 import { EMPTY_USER, STORAGE_KEYS } from "../constants";
@@ -19,7 +19,11 @@ export function useAuth(
   const [user, setUser] = useState<UserProfile>(EMPTY_USER);
   const [isHydrated, setIsHydrated] = useState<boolean>(false);
 
-  // Initial Auth Check & Supabase Session listener
+  // Keep options in a ref to avoid infinite re-renders
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
+
+  // Initial Auth Check & Supabase Session listener (only run on mount / supabase instance)
   useEffect(() => {
     let isMounted = true;
 
@@ -31,8 +35,8 @@ export function useAuth(
 
         if (session && isMounted) {
           setIsAuthenticated(true);
-          if (options?.onAuthenticated) {
-            await options.onAuthenticated(session.user.id);
+          if (optionsRef.current?.onAuthenticated) {
+            await optionsRef.current.onAuthenticated(session.user.id);
           }
         } else {
           // Fallback to local storage if no active Supabase session
@@ -40,10 +44,16 @@ export function useAuth(
           const savedUser = localStorage.getItem(STORAGE_KEYS.USER);
 
           if (savedAuth === "true") setIsAuthenticated(true);
-          if (savedUser) setUser(JSON.parse(savedUser));
+          if (savedUser) {
+            try {
+              setUser(JSON.parse(savedUser));
+            } catch {
+              // ignore json parse error
+            }
+          }
 
-          if (options?.onRestoreLocalFallback) {
-            options.onRestoreLocalFallback();
+          if (optionsRef.current?.onRestoreLocalFallback) {
+            optionsRef.current.onRestoreLocalFallback();
           }
         }
       } catch (e) {
@@ -60,14 +70,14 @@ export function useAuth(
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (event === "SIGNED_IN" && session) {
         setIsAuthenticated(true);
-        if (options?.onAuthenticated) {
-          await options.onAuthenticated(session.user.id);
+        if (optionsRef.current?.onAuthenticated) {
+          await optionsRef.current.onAuthenticated(session.user.id);
         }
       } else if (event === "SIGNED_OUT") {
         setIsAuthenticated(false);
         setUser(EMPTY_USER);
-        if (options?.onSignedOut) {
-          options.onSignedOut();
+        if (optionsRef.current?.onSignedOut) {
+          optionsRef.current.onSignedOut();
         }
       }
     });
@@ -76,7 +86,7 @@ export function useAuth(
       isMounted = false;
       subscription?.unsubscribe();
     };
-  }, [supabase, options]);
+  }, [supabase]);
 
   // Login action
   const login = useCallback(
@@ -101,8 +111,8 @@ export function useAuth(
           }
           if (data.session) {
             setIsAuthenticated(true);
-            if (options?.onAuthenticated) {
-              await options.onAuthenticated(data.session.user.id);
+            if (optionsRef.current?.onAuthenticated) {
+              await optionsRef.current.onAuthenticated(data.session.user.id);
             }
             return { success: true };
           }
@@ -116,7 +126,7 @@ export function useAuth(
         return { success: true };
       }
     },
-    [supabase, options]
+    [supabase]
   );
 
   // SignUp action
@@ -137,8 +147,8 @@ export function useAuth(
         }
         if (data.session) {
           setIsAuthenticated(true);
-          if (options?.onAuthenticated) {
-            await options.onAuthenticated(data.session.user.id);
+          if (optionsRef.current?.onAuthenticated) {
+            await optionsRef.current.onAuthenticated(data.session.user.id);
           }
         }
         return { success: true };
@@ -146,7 +156,7 @@ export function useAuth(
         return { success: false, error: e?.message || "Gagal melakukan pendaftaran" };
       }
     },
-    [supabase, options]
+    [supabase]
   );
 
   // Logout action
@@ -158,11 +168,11 @@ export function useAuth(
     }
     setIsAuthenticated(false);
     setUser(EMPTY_USER);
-    if (options?.onSignedOut) {
-      options.onSignedOut();
+    if (optionsRef.current?.onSignedOut) {
+      optionsRef.current.onSignedOut();
     }
     localStorage.clear();
-  }, [supabase, options]);
+  }, [supabase]);
 
   // Update user profile
   const updateUser = useCallback(

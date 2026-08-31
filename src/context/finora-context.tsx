@@ -65,7 +65,7 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
       setBudgets((prev) => prev.filter((b) => b.categoryId !== id));
       return categoriesHook.deleteCategory(id);
     },
-    [categoriesHook, setBudgets]
+    [categoriesHook.deleteCategory, setBudgets]
   );
 
   // 6. Wishlists & Savings
