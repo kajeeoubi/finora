@@ -181,7 +181,7 @@ export function ExpenseCategoryDonut({
             })}
           </svg>
 
-          {/* Center Label (Displays Hovered Category or 100% Total) */}
+          {/* Center Label (Displays Hovered Category, 0% when empty, or 100% Total) */}
           <div className="absolute bottom-1 flex flex-col items-center justify-center text-center pointer-events-none transition-all duration-200">
             {hoveredItem ? (
               <>
@@ -193,6 +193,15 @@ export function ExpenseCategoryDonut({
                 </span>
                 <span className="text-[11px] sm:text-xs font-bold text-foreground tracking-tight tabular-nums">
                   {formatIDR(hoveredItem.amount)}
+                </span>
+              </>
+            ) : totalExpense === 0 ? (
+              <>
+                <span className="text-xl sm:text-2xl font-black text-muted-foreground tracking-tight tabular-nums">
+                  0%
+                </span>
+                <span className="text-[11px] sm:text-xs font-bold text-muted-foreground tracking-tight tabular-nums">
+                  {formatIDR(0)}
                 </span>
               </>
             ) : (
@@ -209,44 +218,52 @@ export function ExpenseCategoryDonut({
         </div>
       </div>
 
-      {/* Category Breakdown Chips (Optimized for Mobile with clean no-wrap proportions) */}
-      <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
-        {layeredSegments.map((item) => {
-          const isHovered = hoveredCategoryId === item.category.id;
+      {/* Category Breakdown Chips */}
+      {layeredSegments.length === 0 ? (
+        <div className="pt-3 pb-1 border-t border-black/[0.04] dark:border-white/[0.06] text-center">
+          <span className="text-xs font-medium text-muted-foreground">
+            Tidak ada transaksi pengeluaran pada periode ini
+          </span>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-2 sm:gap-2.5 pt-2 border-t border-black/[0.04] dark:border-white/[0.06]">
+          {layeredSegments.map((item) => {
+            const isHovered = hoveredCategoryId === item.category.id;
 
-          return (
-            <div
-              key={item.category.id}
-              onMouseEnter={() => setHoveredCategoryId(item.category.id)}
-              onMouseLeave={() => setHoveredCategoryId(null)}
-              className={cn(
-                "flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer",
-                isHovered
-                  ? "bg-violet-50/80 border-[#6C4EF5]/40 dark:bg-violet-950/40 dark:border-violet-600/40"
-                  : "bg-[#F5F5F7] dark:bg-[#202028] border-black/[0.02] dark:border-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
-              )}
-            >
-              <div className="flex items-center gap-1.5 overflow-hidden min-w-0 pr-1">
-                <span
-                  className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm"
-                  style={{ backgroundColor: item.color }}
-                />
-                <span className="text-[11px] font-bold text-foreground truncate">
-                  {item.category.name}
-                </span>
+            return (
+              <div
+                key={item.category.id}
+                onMouseEnter={() => setHoveredCategoryId(item.category.id)}
+                onMouseLeave={() => setHoveredCategoryId(null)}
+                className={cn(
+                  "flex items-center justify-between p-2.5 rounded-xl border transition-all cursor-pointer",
+                  isHovered
+                    ? "bg-violet-50/80 border-[#6C4EF5]/40 dark:bg-violet-950/40 dark:border-violet-600/40"
+                    : "bg-[#F5F5F7] dark:bg-[#202028] border-black/[0.02] dark:border-white/[0.04] hover:bg-black/[0.04] dark:hover:bg-white/[0.06]"
+                )}
+              >
+                <div className="flex items-center gap-1.5 overflow-hidden min-w-0 pr-1">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full shrink-0 shadow-sm"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-[11px] font-bold text-foreground truncate">
+                    {item.category.name}
+                  </span>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-[11px] font-black text-foreground block tabular-nums">
+                    {formatIDR(item.amount)}
+                  </span>
+                  <span className="text-[9px] font-semibold text-muted-foreground">
+                    {item.percentage}%
+                  </span>
+                </div>
               </div>
-              <div className="text-right shrink-0">
-                <span className="text-[11px] font-black text-foreground block tabular-nums">
-                  {formatIDR(item.amount)}
-                </span>
-                <span className="text-[9px] font-semibold text-muted-foreground">
-                  {item.percentage}%
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
