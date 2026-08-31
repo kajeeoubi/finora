@@ -80,6 +80,7 @@ interface FinoraContextType {
   getTopBudgetNearLimit: (month?: number, year?: number) => BudgetCalculation | null;
   getExpenseByCategory: (month?: number, year?: number) => { category: Category; amount: number; percentage: number }[];
   getMonthlyTrends: () => { monthName: string; income: number; expense: number; month: number; isCurrentMonth: boolean }[];
+  resetUserData: () => Promise<{ success: boolean; error?: string }>;
 
   // Hydration state
   isHydrated: boolean;
@@ -1714,6 +1715,55 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [transactions]);
 
+  // Reset all user financial data (cards/wallets, transactions, custom categories, budgets, wishlists, reminders)
+  const resetUserData = useCallback(async () => {
+    try {
+      // 1. Reset React state (preserve user profile)
+      setWallets([]);
+      setCategories((prev) => prev.filter((c) => c.isDefault));
+      setTransactions([]);
+      setTransfers([]);
+      setBudgets([]);
+      setWishlists([]);
+      setReminders([]);
+
+      // 2. Clear relevant local storage
+      localStorage.removeItem(STORAGE_KEYS.WALLETS);
+      localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+      localStorage.removeItem(STORAGE_KEYS.TRANSFERS);
+      localStorage.removeItem(STORAGE_KEYS.BUDGETS);
+      localStorage.removeItem(STORAGE_KEYS.WISHLISTS);
+      localStorage.removeItem(STORAGE_KEYS.REMINDERS);
+
+      // 3. Clear remote database records if user is logged in
+      try {
+        const { data: { user: authUser } } = await supabase.auth.getUser();
+        if (authUser) {
+          await Promise.allSettled([
+            supabase.from("transactions").delete().eq("user_id", authUser.id),
+            supabase.from("transfers").delete().eq("user_id", authUser.id),
+            supabase.from("budgets").delete().eq("user_id", authUser.id),
+            supabase.from("wishlists").delete().eq("user_id", authUser.id),
+            supabase.from("bill_reminders").delete().eq("user_id", authUser.id),
+            supabase
+              .from("categories")
+              .delete()
+              .eq("user_id", authUser.id)
+              .eq("is_default", false),
+            supabase.from("wallets").delete().eq("user_id", authUser.id),
+          ]);
+        }
+      } catch (dbErr) {
+        console.warn("Supabase resetUserData error:", dbErr);
+      }
+
+      return { success: true };
+    } catch (e: any) {
+      console.error("Failed to reset user data:", e);
+      return { success: false, error: e?.message || "Gagal mereset data" };
+    }
+  }, [supabase]);
+
   const value = {
     isAuthenticated,
     login,
@@ -1757,6 +1807,7 @@ export function FinoraProvider({ children }: { children: React.ReactNode }) {
     getTopBudgetNearLimit,
     getExpenseByCategory,
     getMonthlyTrends,
+    resetUserData,
     isHydrated,
     isTransferModalOpen,
     setIsTransferModalOpen,

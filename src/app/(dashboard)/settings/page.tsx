@@ -11,7 +11,19 @@ import {
   Moon,
   Sun,
   LogOut,
+  Trash2,
+  AlertTriangle,
+  Loader2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -20,12 +32,17 @@ export default function SettingsPage() {
     categories,
     updateUser,
     logout,
+    resetUserData,
   } = useFinora();
 
   const [name, setName] = useState(user.name);
   const [email, setEmail] = useState(user.email);
   const [isSaved, setIsSaved] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isResetDialogOpen, setIsResetDialogOpen] = useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+  const [resetSuccess, setResetSuccess] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
 
   useEffect(() => {
     setName(user.name);
@@ -73,6 +90,22 @@ export default function SettingsPage() {
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2500);
+  };
+
+  // Reset seluruh data keuangan (semua dompet/kartu, kategori kustom, transaksi, transfer, budget, wishlist, reminder)
+  const handleResetData = async () => {
+    setIsResetting(true);
+    setResetError(null);
+    const res = await resetUserData();
+    setIsResetting(false);
+
+    if (res.success) {
+      setIsResetDialogOpen(false);
+      setResetSuccess(true);
+      setTimeout(() => setResetSuccess(false), 5000);
+    } else {
+      setResetError(res.error || "Gagal melakukan reset data");
+    }
   };
 
   return (
@@ -216,8 +249,134 @@ export default function SettingsPage() {
         </div>
       </div>
 
+      {/* Zona Bahaya / Reset Data */}
+      <div className="rounded-[28px] border border-red-200/80 dark:border-red-950/80 bg-white dark:bg-[#16161C] p-6 shadow-sm space-y-4 transition-colors animate-card-enter stagger-3">
+        <div className="flex items-center gap-2.5">
+          <div className="h-8 w-8 rounded-full bg-red-100 dark:bg-red-950/60 text-red-600 dark:text-red-400 flex items-center justify-center shrink-0">
+            <AlertTriangle className="h-4 w-4" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-white">
+              Reset Data Finansial
+            </h3>
+            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+              Tindakan pembersihan dan penghapusan seluruh riwayat keuangan
+            </p>
+          </div>
+        </div>
+
+        <div className="pt-2 border-t border-black/[0.04] dark:border-white/[0.06] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="space-y-0.5">
+            <span className="text-xs font-bold text-zinc-900 dark:text-white block">
+              Hapus Semua Card, Kategori & Transaksi
+            </span>
+            <span className="text-[11px] text-zinc-500 dark:text-zinc-400 block max-w-md">
+              Menghapus semua dompet/kartu, catatan transaksi, anggaran, impian, pengingat, dan kategori kustom. Akun & profil Anda tetap utuh.
+            </span>
+          </div>
+
+          <Dialog open={isResetDialogOpen} onOpenChange={setIsResetDialogOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                className="h-11 rounded-2xl border-red-200 dark:border-red-900/60 bg-red-50 hover:bg-red-100 text-red-600 dark:bg-red-950/40 dark:text-red-400 dark:hover:bg-red-950/80 text-xs font-bold gap-2 cursor-pointer shrink-0 transition-all active:scale-95"
+              >
+                <Trash2 className="h-4 w-4" />
+                <span>Reset Semua Data</span>
+              </Button>
+            </DialogTrigger>
+
+            <DialogContent className="sm:max-w-md p-6 rounded-[28px] bg-white dark:bg-[#16161C] border border-black/[0.08] dark:border-white/10 shadow-2xl">
+              <DialogHeader className="space-y-3">
+                <div className="mx-auto h-12 w-12 rounded-full bg-red-100 dark:bg-red-950/70 text-red-600 dark:text-red-400 flex items-center justify-center shadow-inner">
+                  <AlertTriangle className="h-6 w-6 stroke-[2.5]" />
+                </div>
+                <DialogTitle className="text-center text-lg font-black text-zinc-900 dark:text-white">
+                  Konfirmasi Reset Data
+                </DialogTitle>
+                <DialogDescription className="text-center text-xs text-zinc-500 dark:text-zinc-400 leading-relaxed">
+                  Apakah Anda yakin ingin menghapus seluruh data finansial? Tindakan ini <strong>bersifat permanen</strong> dan tidak dapat dibatalkan.
+                </DialogDescription>
+              </DialogHeader>
+
+              {/* Rincian data yang direset */}
+              <div className="my-2 p-3.5 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] text-xs space-y-2 border border-black/[0.04] dark:border-white/[0.06]">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 block">
+                  Data yang akan dihapus:
+                </span>
+                <ul className="space-y-1.5 text-zinc-700 dark:text-zinc-300 font-medium text-[11px]">
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                    <span>Semua Dompet / Kartu Pembayaran</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                    <span>Semua Riwayat Transaksi & Transfer</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                    <span>Semua Anggaran, Wishlist & Pengingat Tagihan</span>
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <span className="h-1.5 w-1.5 rounded-full bg-red-500 shrink-0" />
+                    <span>Kategori Kustom Tambahan</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-bold pt-1 border-t border-black/[0.04] dark:border-white/[0.06]">
+                    <Check className="h-3.5 w-3.5 shrink-0" />
+                    <span>Akun Profil ({user.name}) Tetap Aktif</span>
+                  </li>
+                </ul>
+              </div>
+
+              {resetError && (
+                <div className="p-3 rounded-xl bg-red-50 dark:bg-red-950/50 border border-red-200 dark:border-red-900 text-red-600 dark:text-red-400 text-xs font-semibold text-center">
+                  {resetError}
+                </div>
+              )}
+
+              <DialogFooter className="gap-2 sm:gap-2 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isResetting}
+                  onClick={() => setIsResetDialogOpen(false)}
+                  className="flex-1 h-11 rounded-2xl bg-[#F5F5F7] dark:bg-[#202028] border-black/[0.08] dark:border-white/10 text-zinc-700 dark:text-zinc-300 font-bold text-xs hover:bg-zinc-200 dark:hover:bg-zinc-700 cursor-pointer"
+                >
+                  Batal
+                </Button>
+                <Button
+                  type="button"
+                  disabled={isResetting}
+                  onClick={handleResetData}
+                  className="flex-1 h-11 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-bold text-xs gap-1.5 shadow-md shadow-red-600/30 cursor-pointer"
+                >
+                  {isResetting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Mereset...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="h-4 w-4" />
+                      <span>Ya, Reset Data</span>
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {resetSuccess && (
+          <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60 text-emerald-700 dark:text-emerald-300 text-xs font-bold flex items-center gap-2 animate-in fade-in">
+            <Check className="h-4 w-4 shrink-0" />
+            <span>Semua kartu, kategori, dan transaksi berhasil direset! Akun Anda tetap aktif.</span>
+          </div>
+        )}
+      </div>
+
       {/* Tombol Keluar Akun */}
-      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div className="rounded-[28px] border border-black/[0.06] dark:border-white/[0.08] bg-white dark:bg-[#16161C] p-5 shadow-sm transition-colors animate-card-enter stagger-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <span className="text-sm font-bold text-zinc-900 dark:text-white block">
             Keluar dari Finora

@@ -478,28 +478,28 @@ export default function ReportsPage() {
             </span>
           </div>
 
-          <table className="w-full table-fixed text-left border-collapse text-[10px] border border-zinc-300">
+          <table className="w-full table-auto text-left border-collapse text-[9.5px] border border-zinc-300">
             <thead>
-              <tr className="border-b border-zinc-400 bg-zinc-100 font-bold text-zinc-800">
-                <th className="w-[4%] py-1.5 px-1 text-center border-r border-zinc-200">
+              <tr className="border-b-2 border-zinc-400 bg-zinc-100 font-bold text-zinc-800">
+                <th className="py-2 px-2 text-center border-r border-zinc-200 whitespace-nowrap">
                   No.
                 </th>
-                <th className="w-[13%] py-1.5 px-1.5 border-r border-zinc-200">
+                <th className="py-2 px-2.5 border-r border-zinc-200 whitespace-nowrap">
                   Tanggal
                 </th>
-                <th className="w-[15%] py-1.5 px-1.5 border-r border-zinc-200">
+                <th className="py-2 px-2.5 border-r border-zinc-200 whitespace-nowrap">
                   Kategori
                 </th>
-                <th className="w-[14%] py-1.5 px-1.5 border-r border-zinc-200">
+                <th className="py-2 px-2.5 border-r border-zinc-200 whitespace-nowrap">
                   Dompet
                 </th>
-                <th className="w-[30%] py-1.5 px-1.5 border-r border-zinc-200">
+                <th className="py-2 px-3 border-r border-zinc-200">
                   Keterangan / Catatan
                 </th>
-                <th className="w-[10%] py-1.5 px-1 text-center border-r border-zinc-200">
+                <th className="py-2 px-2.5 text-center border-r border-zinc-200 whitespace-nowrap">
                   Jenis
                 </th>
-                <th className="w-[14%] py-1.5 px-1.5 text-right">
+                <th className="py-2 px-3 text-right whitespace-nowrap">
                   Nominal
                 </th>
               </tr>
@@ -522,25 +522,25 @@ export default function ReportsPage() {
 
                   return (
                     <tr key={tx.id} className="odd:bg-white even:bg-zinc-50/70">
-                      <td className="w-[4%] py-1.5 px-1 text-center text-zinc-500 border-r border-zinc-200">
+                      <td className="py-2 px-2 text-center text-zinc-500 border-r border-zinc-200 align-top tabular-nums">
                         {idx + 1}
                       </td>
-                      <td className="w-[13%] py-1.5 px-1.5 text-zinc-800 border-r border-zinc-200 whitespace-nowrap">
+                      <td className="py-2 px-2.5 text-zinc-800 border-r border-zinc-200 whitespace-nowrap align-top">
                         {formatDateIndo(tx.transactionAt)}
                       </td>
-                      <td className="w-[15%] py-1.5 px-1.5 font-semibold text-zinc-900 border-r border-zinc-200 break-words">
+                      <td className="py-2 px-2.5 font-semibold text-zinc-900 border-r border-zinc-200 whitespace-nowrap align-top">
                         {cat?.name || "Lainnya"}
                       </td>
-                      <td className="w-[14%] py-1.5 px-1.5 text-zinc-700 border-r border-zinc-200 break-words">
+                      <td className="py-2 px-2.5 text-zinc-700 border-r border-zinc-200 whitespace-nowrap align-top">
                         {wal?.name || "Dompet"}
                       </td>
-                      <td className="w-[30%] py-1.5 px-1.5 text-zinc-600 border-r border-zinc-200 break-words leading-tight">
+                      <td className="py-2 px-3 text-zinc-600 border-r border-zinc-200 break-words align-top leading-normal min-w-[140px]">
                         {tx.note || "-"}
                       </td>
-                      <td className="w-[10%] py-1.5 px-1 text-center border-r border-zinc-200">
+                      <td className="py-2 px-2.5 text-center border-r border-zinc-200 align-top whitespace-nowrap">
                         <span
                           className={cn(
-                            "px-1 py-0.5 rounded text-[8px] font-bold inline-block whitespace-nowrap",
+                            "px-1.5 py-0.5 rounded text-[8px] font-bold inline-block whitespace-nowrap",
                             isIncome
                               ? "bg-emerald-100 text-emerald-800 border border-emerald-300"
                               : "bg-red-100 text-red-800 border border-red-300"
@@ -551,7 +551,7 @@ export default function ReportsPage() {
                       </td>
                       <td
                         className={cn(
-                          "w-[14%] py-1.5 px-1.5 text-right font-bold tabular-nums whitespace-nowrap",
+                          "py-2 px-3 text-right font-bold tabular-nums whitespace-nowrap align-top",
                           isIncome ? "text-emerald-700" : "text-red-700"
                         )}
                       >
@@ -567,16 +567,16 @@ export default function ReportsPage() {
                 <tr className="border-t-2 border-zinc-700 font-bold bg-zinc-100 text-[10px]">
                   <td
                     colSpan={5}
-                    className="py-1.5 px-1.5 text-right uppercase text-[10px] border-r border-zinc-200"
+                    className="py-2 px-3 text-right uppercase text-[10px] border-r border-zinc-200"
                   >
                     Arus Kas Bersih Periode Ini:
                   </td>
-                  <td className="py-1.5 px-1 text-center text-[9px] text-zinc-600 border-r border-zinc-200 whitespace-nowrap">
+                  <td className="py-2 px-2.5 text-center text-[9px] text-zinc-600 border-r border-zinc-200 whitespace-nowrap">
                     {filteredTransactions.length} item
                   </td>
                   <td
                     className={cn(
-                      "py-1.5 px-1.5 text-right text-[11px] font-black tabular-nums whitespace-nowrap",
+                      "py-2 px-3 text-right text-[11px] font-black tabular-nums whitespace-nowrap",
                       totalPrintNet >= 0 ? "text-emerald-700" : "text-red-700"
                     )}
                   >
